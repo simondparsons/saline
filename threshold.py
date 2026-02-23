@@ -20,7 +20,7 @@ def main():
     # Allow command line specification of the input file
     parser = argparse.ArgumentParser(description='Simple threshold application for RGB images.')
     parser.add_argument('--input', help='Path to input image.')
-    #parser.add_argument('--output', help='Path to output file.')
+    parser.add_argument('--display', help='If we display images.')
     args = parser.parse_args()
 
     # Load the image file identified in the command line
@@ -28,6 +28,12 @@ def main():
     if src is None:
         print('Could not open or find the image:', args.input)
         exit(0)
+
+    # Doe we display images?
+    if args.display != None:
+        display = True
+    else:
+        display = False
 
     # Split in to B, G and R channels. Could use bgr_planes but the internet says this is more efficient.
     b = src[:,:,0] # get blue channel
@@ -46,12 +52,7 @@ def main():
                 newImg[i][j][1] = 255
                 newImg[i][j][2] = 255
                 pixelCount = pixelCount + 1
-            
-    # Now view the resulting binary image.
-    cv.namedWindow("Pixels within threshold", cv.WINDOW_NORMAL)
-    # Set mouse callback function for window
-    cv.imshow("Pixels within threshold", newImg)
-
+        
     # Try adding a red threshold as well. 
     newImg2 = np.zeros(src.shape)
     pixelCount2 = 0
@@ -64,13 +65,17 @@ def main():
                 newImg2[i][j][2] = 255
                 pixelCount2 = pixelCount2 + 1
 
-    # Now view the resulting image.
-    cv.namedWindow("Second", cv.WINDOW_NORMAL)
-    # Set mouse callback function for window
-    cv.imshow("Second", newImg2)
+    # Now view the resulting images if requested
+    if display:
+        # Display windows and set callback
+        cv.namedWindow("First threshold", cv.WINDOW_NORMAL)
+        cv.imshow("First threshold", newImg)
+
+        cv.namedWindow("Second threshold", cv.WINDOW_NORMAL)
+        cv.imshow("Second threshold", newImg2)
     
-    cv.waitKey(0)
-    cv.destroyAllWindows()
+        cv.waitKey(0)
+        cv.destroyAllWindows()
 
     
     print("There are ", pixelCount, "green pixels")
