@@ -29,7 +29,7 @@ def main():
         print('Could not open or find the image:', args.input)
         exit(0)
 
-    # Doe we display images?
+    # Do we display images?
     if args.display != None:
         display = True
     else:

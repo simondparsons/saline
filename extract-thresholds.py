@@ -114,12 +114,19 @@ def main():
 
     if debug:
         print("Thresholds: ", thresholds)
-    
+    else:
+        print("Thresholds")
+        print("Blue:  ", thresholds[0][0], " to ", thresholds[0][1])
+        print("Green: ", thresholds[1][0], " to ", thresholds[1][1])
+        print("Red:   ", thresholds[2][0], " to ", thresholds[2][1])
+        
     # Now create a new image based on thresholds defined by the points
     # that were selected.
 
+    # First, consider the box 
     newImg = np.zeros(src.shape)
 
+    count1 = 0
     for i in range(src.shape[0]):
         for j in range(src.shape[1]):
             # If B, G and R values are within thresholds
@@ -127,12 +134,14 @@ def main():
                 newImg[i][j][0] = 255
                 newImg[i][j][1] = 255
                 newImg[i][j][2] = 255
+                count1 = count1 + 1
             
     # Now view the resulting RGB image.
     cv.namedWindow("Threshold 1", cv.WINDOW_NORMAL)
     # Set mouse callback function for window
     cv.imshow("Threshold 1", newImg)
 
+    count2 = 0
     newImg2 = np.zeros(src.shape)
     for i in range(src.shape[0]):
         for j in range(src.shape[1]):
@@ -141,15 +150,20 @@ def main():
                 newImg2[i][j][0] = 255
                 newImg2[i][j][1] = 255
                 newImg2[i][j][2] = 255
-
+                count2 = count2 + 1
+                
     # Now view the resulting RGB image.
     cv.namedWindow("Threshold 2", cv.WINDOW_NORMAL)
     # Set mouse callback function for window
     cv.imshow("Threshold 2", newImg2)
 
+    print("Threshold 1 has ", count1, " pixels")
+    print("Threshold 2 has ", count2, " pixels")
+    
     cv.waitKey(0)
     cv.destroyAllWindows()
 
+    
     return 0
 
 if __name__ == "__main__":

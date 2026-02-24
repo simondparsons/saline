@@ -62,26 +62,20 @@ def extract_roi(arr, x, y, w, h, intensity, line):
 
 # Open the file using cv
 src = cv.imread(cv.samples.findFile('./images/2024_09_02/20240902_090725.jpg'))
-# Split into 
-#bgr_planes = cv.split(src)
+# Split into channels
 
 b = src[:,:,0] # get blue channel
 g = src[:,:,1] # get green channel
 r = src[:,:,2] # get red channel
 
-#cv.namedWindow("B Channel", cv.WINDOW_NORMAL)
-#cv.imshow("B Channel", b)
-#cv.namedWindow("G Channel", cv.WINDOW_NORMAL)
-#cv.imshow("G Channel", g)
-#cv.namedWindow("R Channel", cv.WINDOW_NORMAL)
-#cv.imshow("R Channel", r)
-#cv.waitKey(0)
-#cv.destroyAllWindows()
-
-#uncorrected = envi.open('../data/raw-data-240924/linseed_b_24_09_24.hdr','../da#ta/raw-data-240924/linseed_b_24_09_24.dat')
-#data_ref = envi.open('../data/raw-data-240924/linseed_b_24_09_24-gain-adjusted.hdr','../data/raw-data-240924/linseed_b_24_09_24-gain-adjusted.dat')
-#bands = uncorrected.bands.centers #data_ref.bands.centers       # List of bands
-#raw_data = np.array(data_ref.load()) # The raw image data
+cv.namedWindow("B Channel", cv.WINDOW_NORMAL)
+cv.imshow("B Channel", b)
+cv.namedWindow("G Channel", cv.WINDOW_NORMAL)
+cv.imshow("G Channel", g)
+cv.namedWindow("R Channel", cv.WINDOW_NORMAL)
+cv.imshow("R Channel", r)
+cv.waitKey(0)
+cv.destroyAllWindows()
 
 #Get an RGB image which we will use to make our selections on. We use
 # the default bands.
@@ -89,103 +83,88 @@ r = src[:,:,2] # get red channel
 
 # Now view the RGB image, and set our mouse_callback function to
 # record mouse clicks on the image.
-#cv.namedWindow("Pick your points", cv.WINDOW_NORMAL)
+cv.namedWindow("Pick your points", cv.WINDOW_NORMAL)
 # Set mouse callback function for window
-#cv.setMouseCallback("Pick your points", mouse_callback)
-#cv.imshow("Pick your points", src)
-#cv.waitKey(0)
-#cv.destroyAllWindows()
+cv.setMouseCallback("Pick your points", mouse_callback)
+cv.imshow("Pick your points", src)
+cv.waitKey(0)
+cv.destroyAllWindows()
 
-#print(mouse_clicks)
+print(mouse_clicks)
 
 # Now extract the reflectance at each point.
-#intensities = np.zeros((3, len(mouse_clicks)))
-#print("Intensities: ", intensities)
-#print(bgr_planes[0])
-#for i in range(len(mouse_clicks)):
-#    x = mouse_clicks[i][0]
-#    y = mouse_clicks[i][1]
-#    intensities[0][i] = b[x][y]
-#    intensities[1][i] = g[x][y]
-#    intensities[2][i] = r[x][y]
+intensities = np.zeros((3, len(mouse_clicks)))
+print("Intensities: ", intensities)
+for i in range(len(mouse_clicks)):
+    x = mouse_clicks[i][0]
+    y = mouse_clicks[i][1]
+    intensities[0][i] = b[x][y]
+    intensities[1][i] = g[x][y]
+    intensities[2][i] = r[x][y]
 
-#    print(b[x][y])
-#    print(g[x][y])
-#    print(r[x][y])
+    print(b[x][y])
+    print(g[x][y])
+    print(r[x][y])
     
-#print("Intensities: ", intensities)
+print("Intensities: ", intensities)
                        
 # Extract the max and min values.
-#thresholds = np.zeros((3, 2))
+thresholds = np.zeros((3, 2))
 
-#for i in range(3):
-#    max = 0
-#    min = 256
-#    for j in range(len(mouse_clicks)):
-#        if intensities[i][j] > max:
-#            max = intensities[i][j]
-#        if intensities[i][j] < min:
-#            min = intensities[i][j]
-#    thresholds[i][0] = min
-#    thresholds[i][1] = max
+for i in range(3):
+    max = 0
+    min = 256
+    for j in range(len(mouse_clicks)):
+        if intensities[i][j] > max:
+            max = intensities[i][j]
+        if intensities[i][j] < min:
+            min = intensities[i][j]
+    thresholds[i][0] = min
+    thresholds[i][1] = max
             
-#print("Thresholds: ", thresholds)
+print("Thresholds: ", thresholds)
 
 # Now create a new image based on thresholds defined by the points
 # that were selected.
 
 newImg = np.zeros(src.shape)
 
-#for i in range(src.shape[0]):
-#    for j in range(src.shape[1]):
-#        # If B, G and R values are within thresholds
-#        if b[i][j] >= thresholds[0][0] and b[i][j] <= thresholds[0][1] and g[i][j] >= thresholds[1][0] and g[i][j] <= thresholds[1][1] and r[i][j] >= thresholds[2][0] and r[i][j] <= thresholds[2][1]:
-        # If G values are within the thresholds
-        #if bgr_planes[1][i][j] > thresholds[1][0] and bgr_planes[1][i][j] < thresholds[1][1]:
-#            newImg[i][j][0] = 255
-#            newImg[i][j][1] = 255
-#            newImg[i][j][2] = 255
-
 for i in range(src.shape[0]):
     for j in range(src.shape[1]):
-        # If G values are above threshold
-        if g[i][j] >= 200:
+        # If B, G and R values are within thresholds
+        if b[i][j] >= thresholds[0][0] and b[i][j] <= thresholds[0][1] and g[i][j] >= thresholds[1][0] and g[i][j] <= thresholds[1][1] and r[i][j] >= thresholds[2][0] and r[i][j] <= thresholds[2][1]:
+        # If G values are within the thresholds
+        #if bgr_planes[1][i][j] > thresholds[1][0] and bgr_planes[1][i][j] < thresholds[1][1]:
             newImg[i][j][0] = 255
             newImg[i][j][1] = 255
             newImg[i][j][2] = 255
+
+#for i in range(src.shape[0]):
+#    for j in range(src.shape[1]):
+#        # If G values are above threshold
+#        if g[i][j] >= 200:
+#            newImg[i][j][0] = 255
+#            newImg[i][j][1] = 255
+#            newImg[i][j][2] = 255
             
 # Now view the resulting RGB image.
-cv.namedWindow("Pixels within threshold", cv.WINDOW_NORMAL)
+cv.namedWindow("Threshold 1", cv.WINDOW_NORMAL)
 # Set mouse callback function for window
-cv.imshow("Pixels within threshold", newImg)
+cv.imshow("Threshold 1", newImg)
 
 newImg2 = np.zeros(src.shape)
 for i in range(src.shape[0]):
     for j in range(src.shape[1]):
         # If G values are above threshold
-        if g[i][j] >= 200 and r[i][j] <= 200:
+        if g[i][j] >= thresholds[1][0]: #+ (thresholds[1][1] - thresholds[1][0]):
             newImg2[i][j][0] = 255
             newImg2[i][j][1] = 255
             newImg2[i][j][2] = 255
 
 # Now view the resulting RGB image.
-cv.namedWindow("Pixels within threshold 2", cv.WINDOW_NORMAL)
+cv.namedWindow("Threshold 2", cv.WINDOW_NORMAL)
 # Set mouse callback function for window
-cv.imshow("Pixels within threshold", newImg2)
+cv.imshow("Threshold 2", newImg2)
 
 cv.waitKey(0)
 cv.destroyAllWindows()
-
-exit()
-
-# Write the set of intensities to a CSV file
-# Borrowing from: https://docs.python.org/3/library/csv.html
-#
-with open('output.csv', 'w', newline='') as csvfile:
-    iWriter = csv.writer(csvfile, delimiter=',',
-                            quotechar='|', quoting=csv.QUOTE_MINIMAL)
-    iWriter.writerow(bands)
-    for intensity in intensities:
-        iWriter.writerow(intensity)
-
-# plotter.py can be used to read  this file and plot the waveforms.
