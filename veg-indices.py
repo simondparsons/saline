@@ -159,8 +159,9 @@ def main():
         cv.namedWindow("ExGR thresholded", cv.WINDOW_NORMAL)
         cv.imshow("ExGR thresholded", exgrImg_thresh)
 
-    # Compute green leaf index and apply 0 threshold. Note that we do
-    # not use the normalized image here.
+    # Compute green leaf index and apply 0 threshold. Note that Rosen
+    # et al. suggest using the non-normalized image, but the normalized
+    # one looks to work much better.
     gliImg = computeIndex(img_normal, computeGLI)
     gliImg_thresh, gliCount = applyThreshold(gliImg, 0)
 
@@ -171,8 +172,9 @@ def main():
         cv.imshow("GLI thresholded", gliImg_thresh)
 
 
-    # Compute the cisible atmospherically resistant index. Again, we do
-    # not use the normalized index
+    # Compute the cisible atmospherically resistant index. Again,
+    # Rosen et al. suggest using the non-normalized image, but the
+    # normalized one looks to work much better.
     variImg = computeIndex(img_normal, computeVARI)
     variImg_thresh, variCount = applyThreshold(variImg, 0)
 
