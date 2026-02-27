@@ -1,7 +1,7 @@
 # threshold.py
 #
 # Code to apply a simple threshold to RGB images. We're looking for
-# green pixels, so something pretty straightforward seems an
+# green pixels, so something pretty straightforward seems like an
 # appropriate place to start.
 #
 # Simon Parsons
@@ -14,7 +14,7 @@ import numpy as np
 #import matplotlib.pyplot as plt
 import cv2 as cv
 
-# Code take from rgb-pick.py, so will look familiar
+# Code taken from rgb-pick.py, so will look familiar
 
 def main():
     # Allow command line specification of the input file

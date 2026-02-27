@@ -1,7 +1,7 @@
 # extract-thresholds.py
 #
 # Code to pick pixels from RGB images of plants, extract the max and
-# min BGR values from the points, and then applhythose thresholds to
+# min BGR values from the points, and then apply those thresholds to
 # create a binary mask.
 #
 # This started from my re-write of the RoI selection code from Achyut
@@ -16,7 +16,7 @@
 # Necesary libraries
 import argparse
 import numpy as np
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import cv2 as cv
 
 # Using mouse clicks requires we use a global variable. The [x, y]
@@ -36,18 +36,6 @@ def mouse_callback(event, x, y, flags, params):
         global mouse_clicks
         #store the coordinates of the left-click event
         mouse_clicks.append([x, y])
-
-# This grabs an area around the mouse click.
-def extract_roi(arr, x, y, w, h, intensity, line):
-    roi = arr[y:y+h, x:x+w, :]
-    bounding_box = arr
-    #THIS PART IS JUST COLORING THE BOX AROUND THE IMAGE
-    bounding_box[y-line:y, x-line:x+w+line, :] = intensity 
-    bounding_box[y:y+h, x-line:x, :] = intensity 
-    bounding_box[y+h:y+h+line, x-line:x+w+line, :] = intensity 
-    bounding_box[y:y+h, x+w:x+w+line, :] = intensity 
-
-    return (roi, bounding_box)
 
 def main():
     # Allow command line specification of the input file
