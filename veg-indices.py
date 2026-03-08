@@ -1,10 +1,10 @@
-# Veg-indices.py
+# veg-indices.py
 #
 # Code to compute various vegetative indices
 #
 # Simon Parsons
 # University of Lincoln
-# 27-02-23
+# 26-02-27
 
 # Necesary libraries
 import argparse
@@ -40,7 +40,7 @@ def normalizeBands(img):
 # Computing vegetative indices
 
 # Definitions for ExG, ExGR, GLI and VARI come from: L. Rosen,
-# P. M. Ewing, and B. C> Runk, RGB-based indices for estimating cover
+# P. M. Ewing, and B. C. Runk, RGB-based indices for estimating cover
 # crop biomass, nitrogen content, and carbon:nitrogen ratio, Agronomy
 # Journal, 116(6):3070-3080, 2024.
 
@@ -172,7 +172,7 @@ def main():
         cv.imshow("GLI thresholded", gliImg_thresh)
 
 
-    # Compute the cisible atmospherically resistant index. Again,
+    # Compute the visible atmospherically resistant index. Again,
     # Rosen et al. suggest using the non-normalized image, but the
     # normalized one looks to work much better.
     variImg = computeIndex(img_normal, computeVARI)

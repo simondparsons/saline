@@ -11,7 +11,6 @@
 # Necesary libraries
 import argparse
 import numpy as np
-#import matplotlib.pyplot as plt
 import cv2 as cv
 
 # Code taken from rgb-pick.py, so will look familiar
