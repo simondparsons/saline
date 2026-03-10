@@ -56,7 +56,7 @@ def process_images(input_dir, output_csv, selected_functions, thresholds, normal
         if threshold is None:
             threshold = 0
         elif threshold == "otsu":
-            threshold = vg.calculateOtsuThreshold(exgImg)
+            threshold = vg.calculateOtsuThreshold(exgrImg)
             
         _, exgrCount = vg.applyThreshold(exgrImg, threshold)
         return exgrCount
@@ -255,18 +255,12 @@ Examples:
         default=None,
         help='Threshold values for each function specified with -f (in same order). Each value can be: a number (e.g., 150), "None" (use function default), or "otsu" (calculate Otsu threshold per image). Example: -f func1 func2 func3 -t otsu 200 None'
     )
-    #parser.add_argument(
-    #    '-t', '--threshold',
-    #    type=float,
-    #    default=None,
-    #    help='Threshold parameter for functions that require it (default: None)'
-    #)
 
     parser.add_argument(
         '-n', '--normalize',
-        type=bool,
-        default=True,
-        help='Should we normalize the images (default: True)'
+        type=str,
+        default=None,
+        help='Should we normalize the images. Enter 'True' or 'true' for normalization (default: False)'
     )
     
     parser.add_argument(
@@ -317,6 +311,20 @@ Examples:
         print(f"Function-threshold mapping:")
         for func, thresh in function_thresholds.items():
             print(f"  {func}: {thresh}")
+
+    print("args.normalize", args.normalize)
+    
+    # Only normalize if we explicitly say to do that. Note that
+    # args.normalize is None by default.
+    if args.normalize:
+        if  args.normalize == "True" or args.normalize == "true":
+            normalize = True
+        else:
+            normalize = False
+    else:
+        normalize = False
+
+    print("Normalize: ", normalize)
     
     # Run processing
     try:
@@ -325,7 +333,7 @@ Examples:
             args.output_csv,
             args.functions,
             function_thresholds,
-            args.normalize
+            normalize
         )
         
         # Display first few rows
