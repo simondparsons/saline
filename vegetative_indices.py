@@ -6,9 +6,10 @@
 # University of Lincoln
 # 26-03-06
 
-# Vegetative indices as a library. Largely my own work, though Otsu
-# came frrom Claude Sonnet 4.5 (which basicaly copied it from the
-# OpenCV web page).
+# Vegetative indices as a library. This started with my own work, with
+# Otsu from Claude Sonnet 4.5 (which basicaly copied it from the
+# OpenCV web page), but then Chat GPT wrote a bunch more of the
+# fucntions for me.
 
 # Necesary libraries
 import argparse
@@ -22,7 +23,14 @@ import cv2 as cv
 # crop biomass, nitrogen content, and carbon:nitrogen ratio, Agronomy
 # Journal, 116(6):3070-3080, 2024.
 
+# 
+
+# Epsilon to use to avoid division by zero.
+EPS = 1e-10
+
+# =========================
 # Excess green (ExG)
+# =========================
 def computeExG(b, g, r):
     # Convert to float64 first to avoid overflow
     b = b.astype(np.float64)
@@ -31,7 +39,10 @@ def computeExG(b, g, r):
     
     return (((2 * g) - b) - r)
 
+
+# =========================
 # Excess green minus excess red (ExGR)
+# =========================
 def computeExGR(b, g, r):
     # Convert to float64 first to avoid overflow
     b = b.astype(np.float64)
@@ -40,7 +51,10 @@ def computeExGR(b, g, r):
     
     return (((3 * g) - (2.4 * r)) - b)
 
+
+# =========================
 # Green leaf index (GLI)
+# =========================
 def computeGLI(b, g, r):
     # Convert to float64 first to avoid overflow
     b = b.astype(np.float64)
@@ -50,10 +64,13 @@ def computeGLI(b, g, r):
     # Avoid division by zero
     denominator = ((2 * g) + b) + r
     if denominator == 0:
-        denominator = 1e-10
+        denominator = EPS
     return ((((2 * g) - b) - r) / denominator)
 
+
+# =========================
 #  Visible atmospherically resistant index (VARI)
+# =========================
 def computeVARI(b, g, r):
     # Convert to float64 first to avoid overflow
     b = b.astype(np.float64)
@@ -62,8 +79,99 @@ def computeVARI(b, g, r):
     
     denominator = (g + r) - b
     if denominator == 0:
-        denominator = 1e-10
+        denominator = EPS
     return ((g - r) / denominator)
+
+# The next set come from ChatGPT so need to be checked.
+
+# =========================
+# Red Green Blue Vegetation Index (RGBVI)
+# =========================
+def computeRGBVI(b, g, r):
+    b = b.astype(np.float64)
+    g = g.astype(np.float64)
+    r = r.astype(np.float64)
+    return (g**2 - (r * b)) / (g**2 + (r * b) + EPS)
+
+
+# =========================
+# Dark Green Colour Index (DGCI)
+# =========================
+def computeDGCI(b, g, r):
+    b = b.astype(np.float64)
+    g = g.astype(np.float64)
+    r = r.astype(np.float64)
+    return ((g - r) + (g - b)) / ((2 * g) + r + b + EPS)
+
+
+# =========================
+# Normalized Green Blue Difference Index (NGBDI)
+# =========================
+def computeNGBDI(b, g, r):
+    b = b.astype(np.float64)
+    g = g.astype(np.float64)
+    return (g - b) / (g + b + EPS)
+
+
+# =========================
+# Green Red Vegetation Index (GRVI)
+# =========================
+def computeGRVI(b, g, r):
+    g = g.astype(np.float64)
+    r = r.astype(np.float64)
+    return (g - r) / (g + r + EPS)
+
+
+# =========================
+# Normalized Redness Intensity (NRI)
+# =========================
+def computeNRI(b, g, r):
+    b = b.astype(np.float64)
+    g = g.astype(np.float64)
+    r = r.astype(np.float64)
+    return r / (r + g + b + EPS)
+
+
+# =========================
+# Normalized Greenness Intensity (NGI)
+# =========================
+def computeNGI(b, g, r):
+    b = b.astype(np.float64)
+    g = g.astype(np.float64)
+    r = r.astype(np.float64)
+    return g / (r + g + b + EPS)
+
+
+# =========================
+# Normalized Blueness Intensity (NBI)
+# =========================
+def computeNBI(b, g, r):
+    b = b.astype(np.float64)
+    g = g.astype(np.float64)
+    r = r.astype(np.float64)
+    return b / (r + g + b + EPS)
+
+
+# =========================
+# Soil Adjusted Vegetation Index (SAVI – RGB-based)
+# =========================
+def computeSAVI(b, g, r, L=0.5):
+    g = g.astype(np.float64)
+    r = r.astype(np.float64)
+    return ((g - r) / (g + r + L + EPS)) * (1 + L)
+
+
+# =========================
+# Green Minus Red (GMR)
+# =========================
+def computeGMR(b, g, r):
+    g = g.astype(np.float64)
+    r = r.astype(np.float64)
+    return g - r
+
+# =========================
+# Normalization
+# =========================
 
 # Normalize across B, G and R bands. In theory this removes effects
 # due to illumination.
@@ -114,10 +222,16 @@ def normalizeImage(img):
     
     return normalized_uint8
 
+# =========================
 # Calculate an index across an image. Takes the relevant pixel-level
 # function as input.
-#
+# =========================
+
 # Can't currently get this to be called properly from outside the module.
+#
+# ChatGPT suggested a dictionary-based dispatcher, and that is probably
+# the fix we need (see below).
+
 def computeIndex(img, indexFunc):
     b = img[:,:,0] # get blue channel
     g = img[:,:,1] # get green channel
@@ -146,6 +260,94 @@ def computeGLIImage(img):
 
 def computeVARIImage(img):
     return computeIndex(img, computeVARI)
+
+# Those below created by ChatGPT, so check!
+def computeRGBVIImage(img):
+    return computeIndex(img, computeRGBVI)
+
+def computeDGCIImage(img):
+    return computeIndex(img, computeDGCI)
+
+def computeNGBDIImage(img):
+    return computeIndex(img, computeNGBDI)
+
+def computeGRVIImage(img):
+    return computeIndex(img, computeGRVI)
+
+def computeNRIImage(img):
+    return computeIndex(img, computeNRI)
+
+def computeNGIImage(img):
+    return computeIndex(img, computeNGI)
+
+def computeNBIImage(img):
+    return computeIndex(img, computeNBI)
+
+def computeSAVIImage(img):
+    return computeIndex(img, computeSAVI)
+
+def computeGMRImage(img):
+    return computeIndex(img, computeGMR)
+
+# =========================
+# Dispatcher
+# =========================
+
+# =========================
+# Vegetation Index Dispatcher
+# =========================
+
+INDEX_FUNCTIONS = {
+    "ExG": computeExG,
+    "RGBVI": computeRGBVI,
+    "GLI": computeGLI,
+    "DGCI": computeDGCI,
+    "NGBDI": computeNGBDI,
+    "GRVI": computeGRVI,
+    "NRI": computeNRI,
+    "NGI": computeNGI,
+    "NBI": computeNBI,
+    "SAVI": computeSAVI,
+    "GMR": computeGMR,
+}
+
+def computeIndexByName(img, index_name):
+    """
+    Compute a vegetation index by name.
+
+    Parameters
+    ----------
+    img : ndarray
+        Image array (H, W, 3), assumed BGR or RGB consistently
+    index_name : str
+        Key from INDEX_FUNCTIONS
+
+    Returns
+    -------
+    ndarray
+        Computed index image
+    """
+    if index_name not in INDEX_FUNCTIONS:
+        raise ValueError(f"Unknown index '{index_name}'. "
+                         f"Available indices: {list(INDEX_FUNCTIONS.keys())}")
+
+    return computeIndex(img, INDEX_FUNCTIONS[index_name])
+
+
+def computeMultipleIndices(img, index_names):
+    """
+    Compute multiple vegetation indices in one call.
+
+    Returns
+    -------
+    dict[str, ndarray]
+        Dictionary mapping index name to index image
+    """
+    return {name: computeIndexByName(img, name) for name in index_names}
+
+# =========================
+# Thresholding
+# =========================
 
 # Apply a threshold to a single channel image
 def applyThreshold(img, thresh):
