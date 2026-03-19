@@ -9,7 +9,7 @@
 # Vegetative indices as a library. This started with my own work, with
 # Otsu from Claude Sonnet 4.5 (which basicaly copied it from the
 # OpenCV web page), but then Chat GPT wrote a bunch more of the
-# fucntions for me.
+# functions for me.
 
 # Necesary libraries
 import argparse
@@ -82,8 +82,12 @@ def computeVARI(b, g, r):
         denominator = EPS
     return ((g - r) / denominator)
 
-# The next set come from ChatGPT so need to be checked.
+# Checked against: A. Rossi, S. Tavarini, M. Tognoni, L. G. Angelini,
+# C. Clemente, L. Caturegli, Reliable NDVI estimation in wheat using
+# low-Cost UAV-derived RGB vegetation indices, Smart Agricultural
+# Technology, 12:101452, 2025.
 
+# Still ned to check the 
 # =========================
 # Red Green Blue Vegetation Index (RGBVI)
 # =========================
@@ -98,10 +102,13 @@ def computeRGBVI(b, g, r):
 # Dark Green Colour Index (DGCI)
 # =========================
 def computeDGCI(b, g, r):
-    b = b.astype(np.float64)
-    g = g.astype(np.float64)
-    r = r.astype(np.float64)
-    return ((g - r) + (g - b)) / ((2 * g) + r + b + EPS)
+    # DGCI is defined in Rossi et al in terms of HSV
+    h, s, v = rgb_to_hsv(r, g, b)
+    
+    h = h.astype(np.float64)
+    s = s.astype(np.float64)
+    v = v.astype(np.float64)
+    return (((h - 60)/60) + (1 - s) + (1 - b)) / 3
 
 
 # =========================
@@ -111,6 +118,10 @@ def computeNGBDI(b, g, r):
     b = b.astype(np.float64)
     g = g.astype(np.float64)
     return (g - b) / (g + b + EPS)
+
+# 2G - B - R Index
+
+# literally just 2*g - b - r
 
 
 # =========================
@@ -377,3 +388,16 @@ def calculateOtsuThreshold(img):
     
     return otsu_threshold
 
+# =========================
+# RGB to HSV using OpenCV
+# =========================
+
+def rgb_to_hsv(r, g, b):
+    # OpenCV expects BGR and values in range [0,255]
+    bgr_pixel = np.uint8([[[b, g, r]]])
+
+    # Convert BGR to HSV
+    hsv_pixel = cv.cvtColor(bgr_pixel, cv.COLOR_BGR2HSV)
+
+    h, s, v = hsv_pixel[0][0]
+    return int(h), int(s), int(v)
