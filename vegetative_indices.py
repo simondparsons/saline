@@ -22,8 +22,8 @@ import cv2 as cv
 # P. M. Ewing, and B. C. Runk, RGB-based indices for estimating cover
 # crop biomass, nitrogen content, and carbon:nitrogen ratio, Agronomy
 # Journal, 116(6):3070-3080, 2024.
-
-# 
+#
+# These indices were used with thresholds.
 
 # Epsilon to use to avoid division by zero.
 EPS = 1e-10
@@ -39,7 +39,6 @@ def computeExG(b, g, r):
     
     return (((2 * g) - b) - r)
 
-
 # =========================
 # Excess green minus excess red (ExGR)
 # =========================
@@ -50,7 +49,6 @@ def computeExGR(b, g, r):
     r = r.astype(np.float64)
     
     return (((3 * g) - (2.4 * r)) - b)
-
 
 # =========================
 # Green leaf index (GLI)
@@ -66,7 +64,6 @@ def computeGLI(b, g, r):
     if denominator == 0:
         denominator = EPS
     return ((((2 * g) - b) - r) / denominator)
-
 
 # =========================
 #  Visible atmospherically resistant index (VARI)
@@ -86,8 +83,9 @@ def computeVARI(b, g, r):
 # C. Clemente, L. Caturegli, Reliable NDVI estimation in wheat using
 # low-Cost UAV-derived RGB vegetation indices, Smart Agricultural
 # Technology, 12:101452, 2025.
+#
+# These indices were used to compute an average value across parts of an image
 
-# Still ned to check the 
 # =========================
 # Red Green Blue Vegetation Index (RGBVI)
 # =========================
@@ -102,12 +100,13 @@ def computeRGBVI(b, g, r):
 # Dark Green Colour Index (DGCI)
 # =========================
 def computeDGCI(b, g, r):
-    # DGCI is defined in Rossi et al in terms of HSV
+    # DGCI is defined in Rossi et al. in terms of HSV
     h, s, v = rgb_to_hsv(r, g, b)
     
     h = h.astype(np.float64)
     s = s.astype(np.float64)
-    v = v.astype(np.float64)
+    # Don't need v in the calculation
+    # v = v.astype(np.float64)
     return (((h - 60)/60) + (1 - s) + (1 - b)) / 3
 
 
@@ -240,8 +239,8 @@ def normalizeImage(img):
 
 # Can't currently get this to be called properly from outside the module.
 #
-# ChatGPT suggested a dictionary-based dispatcher, and that is probably
-# the fix we need (see below).
+# ChatGPT suggested a dictionary-based dispatcher, and apply-indices
+# uses this route to make the call.
 
 def computeIndex(img, indexFunc):
     b = img[:,:,0] # get blue channel
@@ -264,7 +263,7 @@ def computeIndex(img, indexFunc):
 # =========================
 
 # Allows one function to be called from outside the package, passing
-# the relevant pixel-wse function to computeIndex, eliminating the
+# the relevant pixel-wise function to computeIndex, eliminating the
 # need for one function per index to do this.
 
 INDEX_FUNCTIONS = {
@@ -351,6 +350,26 @@ def calculateOtsuThreshold(img):
     return otsu_threshold
 
 # =========================
+# Averaging
+# =========================
+
+# For some indices we want the average over the image, so we have a
+# variation of applyThreshold. As for applyThreshold, this expects to
+# be called on the result of computing the index, so we have a
+# "grayscale image" as input, where each pixel is the index value
+# (though it is float64 not a uint8)
+
+def averageValue(img):
+    pixelCount = 0
+    pixelSum = pixelCount.astype(float64)
+    for i in range(img.shape[0]):
+        for j in range(img.shape[1]):
+            pixelSum += img[i][j]
+            pixelCount = pixelCount + 1
+                
+    return newImg, pixelCount
+
+# =========================
 # RGB to HSV using OpenCV
 # =========================
 
@@ -362,4 +381,10 @@ def rgb_to_hsv(r, g, b):
     hsv_pixel = cv.cvtColor(bgr_pixel, cv.COLOR_BGR2HSV)
 
     h, s, v = hsv_pixel[0][0]
-    return int(h), int(s), int(v)
+    # To be correct, we should convert back to ints before returning,
+    # but that causes problems with the computation in computeDGCI
+    # where the values are used.
+    #
+    #return int(h), int(s), int(v)
+
+    return h, s, v
