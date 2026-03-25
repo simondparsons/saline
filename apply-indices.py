@@ -35,21 +35,35 @@ def process_images(input_dir, output_csv, selected_functions, thresholds, normal
     """
     
     # Functions to set up calls to the code that computes the
-    # vegetative indices. Repetitve, but allows for different default
-    # thresholds for each.
+    # vegetative indices. Different generic functions to allow
+    # different defaults (could obviously do this in a different way)
 
-    def computeExG(img, threshold=None):
-        exgImg = vg.computeExGImage(img)
+    # Compute index with default zero
+    def computeIndex(img, index, threshold=None):
+        indexImg = vg.computeIndexByName(img, index)
+        
+        # No default, so use zero
+        if threshold is None:
+            threshold = 0
+        elif threshold == "otsu":
+            threshold = vg.calculateOtsuThreshold(indexImg)
+            
+        _, indexCount = vg.applyThreshold(indexImg, threshold)
+        return indexCount
+
+    # Compute index with default Otsu
+    def computeIndexOtsu(img, index, threshold=None):
+        indexImg = vg.computeIndexByName(img, index)
         
         # No default, so use Otsu
         if threshold is None:
-            threshold = vg.calculateOtsuThreshold(exgImg)
+            threshold = vg.calculateOtsuThreshold(indexImg)
         elif threshold == "otsu":
-            threshold = vg.calculateOtsuThreshold(exgImg)
+            threshold = vg.calculateOtsuThreshold(indexImg)
             
-        _, exgCount = vg.applyThreshold(exgImg, threshold)
-        return exgCount
-
+        _, indexCount = vg.applyThreshold(indexImg, threshold)
+        return indexCount
+    '''
     def computeExGR(img, threshold=None):
         exgrImg = vg.computeExGRImage(img)
         
@@ -84,13 +98,27 @@ def process_images(input_dir, output_csv, selected_functions, thresholds, normal
         _, variCount = vg.applyThreshold(variImg, threshold)
         
         return variCount
-    
-    # All available functions
+    '''
+
+    # All available functions. This is used to check that the relevant
+    # index is one we can handle and allows for different functions
+    # for different indices. For example, have functions with
+    # different default thresholds, though most assume 0.
     all_functions = {
-        'ExG':  computeExG,
-        'ExGR': computeExGR,
-        'GLI':  computeGLI,
-        'VARI': computeVARI,
+        'ExG':  computeIndexOtsu,
+        'ExGR': computeIndex,
+        'GLI':  computeIndex,
+        'VARI': computeIndex,
+        "RGBVI": computeIndex,
+        "GLI": computeIndex,
+        "DGCI": computeIndex,
+        "NGBDI": computeIndex,
+        "GRVI": computeIndex,
+        "NRI": computeIndex,
+        "NGI": computeIndex,
+        "NBI": computeIndex,
+        "SAVI": computeIndex,
+        "GMR": computeIndex,
         # Add more function mappings here
     }
     
@@ -131,65 +159,32 @@ def process_images(input_dir, output_csv, selected_functions, thresholds, normal
         
         # Read image
         img = cv2.imread(str(img_path))
-        print(f" Size: {img.shape[:2]}")
        
         if img is None:
             print(f"Warning: Could not read {img_path.name}, skipping...")
             continue
-        
+        print(f" Size: {img.shape[:2]}")
+
         if normalize:
             # If needed, normalize image
             print(f" Normalizing: {img_path.name}")
             img  = vg.normalizeImage(img)
             
-        # Just print what thresholds are being passed
-        #if thresholds:
-        #     print(f"  Passing thresholds: {thresholds}")
-
         # Apply each function and store results
         row_data = {'filename': img_path.name}
              
-        for col_name, func in functions.items():
+        for index, func in functions.items():
             try:
                 #row_data[col_name] = func(img, **thresholds)
-                threshold_value = thresholds.get(col_name, None)
-                row_data[col_name] = func(img, threshold_value)
+                threshold_value = thresholds.get(index, None)
+                ######################
+                # This is where the function defined in the dictionary
+                # above is called. Need to interface this with the
+                # index dispatcher in vegetative_indices
+                row_data[index] = func(img, index, threshold_value)
             except Exception as e:
-                print(f"Error applying {col_name} to {img_path.name}: {e}")
-                row_data[col_name] = None
-
-        # This version computed the Otsu threshold from the original image.
-        #
-        # Call each function, identifying the necessary threshold, and
-        # computing it if required.
-        #
-        # Since a default can be specified with None, we can include
-        # functions that do not need a threshold.
-        #row_data = {'filename': img_path.name}
-
-        #for col_name, func in functions.items():
-        #    try:
-        #        # Get threshold value for this function
-        #        threshold_value = function_thresholds.get(col_name, None)
-        #        
-        #        # Process threshold based on type
-        #        if threshold_value == "otsu":
-        #            # Calculate Otsu threshold for this image
-        #            actual_threshold = vg.calculateOtsuThreshold(img)
-        #            print(f"  {col_name}: using Otsu = {actual_threshold:.2f}")
-        #            row_data[col_name] = func(img, threshold=actual_threshold)
-        #        elif threshold_value is None:
-        #            # Pass no threshold, let function use its default
-        #            print(f"  {col_name}: using function default")
-        #            row_data[col_name] = func(img)
-        #        else:
-        #            # Use the numeric value provided
-        #            print(f"  {col_name}: using threshold = {threshold_value}")
-        #            row_data[col_name] = func(img, threshold=threshold_value)
-        #            
-        #    except Exception as e:
-        #        print(f"Error applying {col_name} to {img_path.name}: {e}")
-        #        row_data[col_name] = None
+                print(f"Error applying {index} to {img_path.name}: {e}")
+                row_data[index] = None
         
         results.append(row_data)
     
@@ -260,7 +255,7 @@ Examples:
         '-n', '--normalize',
         type=str,
         default=None,
-        help='Should we normalize the images. Enter 'True' or 'true' for normalization (default: False)'
+        help='Should we normalize the images. Enter "True" or "true" for normalization (default: False)'
     )
     
     parser.add_argument(
@@ -312,7 +307,7 @@ Examples:
         for func, thresh in function_thresholds.items():
             print(f"  {func}: {thresh}")
 
-    print("args.normalize", args.normalize)
+    #print("args.normalize", args.normalize)
     
     # Only normalize if we explicitly say to do that. Note that
     # args.normalize is None by default.

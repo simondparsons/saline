@@ -259,57 +259,19 @@ def computeIndex(img, indexFunc):
     imgUint8 = imgScaled.astype(np.uint8)
     return imgUint8
 
-# Instead we have some specialised functions that call it.
-def computeExGImage(img):
-    return computeIndex(img, computeExG)
-
-def computeExGRImage(img):
-    return computeIndex(img, computeExGR)
-
-def computeGLIImage(img):
-    return computeIndex(img, computeGLI)
-
-def computeVARIImage(img):
-    return computeIndex(img, computeVARI)
-
-# Those below created by ChatGPT, so check!
-def computeRGBVIImage(img):
-    return computeIndex(img, computeRGBVI)
-
-def computeDGCIImage(img):
-    return computeIndex(img, computeDGCI)
-
-def computeNGBDIImage(img):
-    return computeIndex(img, computeNGBDI)
-
-def computeGRVIImage(img):
-    return computeIndex(img, computeGRVI)
-
-def computeNRIImage(img):
-    return computeIndex(img, computeNRI)
-
-def computeNGIImage(img):
-    return computeIndex(img, computeNGI)
-
-def computeNBIImage(img):
-    return computeIndex(img, computeNBI)
-
-def computeSAVIImage(img):
-    return computeIndex(img, computeSAVI)
-
-def computeGMRImage(img):
-    return computeIndex(img, computeGMR)
-
 # =========================
 # Dispatcher
 # =========================
 
-# =========================
-# Vegetation Index Dispatcher
-# =========================
+# Allows one function to be called from outside the package, passing
+# the relevant pixel-wse function to computeIndex, eliminating the
+# need for one function per index to do this.
 
 INDEX_FUNCTIONS = {
     "ExG": computeExG,
+    "ExGR": computeExGR,
+    "GLI":  computeGLI,
+    "VARI": computeVARI,
     "RGBVI": computeRGBVI,
     "GLI": computeGLI,
     "DGCI": computeDGCI,
