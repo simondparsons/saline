@@ -6,9 +6,9 @@
 # University of Lincoln
 # 26-03-06
 
-# Written with liberal help from Claude Sonnet 4.5, as in Claude did
-# teh ehavy lifting and I interfaced it with the code I already had
-# for the vegetative indices.
+# Written with liberal help from Claude Sonnet 4.5 and ChatGPT
+# 5.2-Auto, as in the LLMs did the heavy lifting and I interfaced
+# their work with the code I already had for the vegetative indices.
 
 import cv2
 import argparse
@@ -63,46 +63,10 @@ def process_images(input_dir, output_csv, selected_functions, thresholds, normal
             
         _, indexCount = vg.applyThreshold(indexImg, threshold)
         return indexCount
-    '''
-    def computeExGR(img, threshold=None):
-        exgrImg = vg.computeExGRImage(img)
-        
-        if threshold is None:
-            threshold = 0
-        elif threshold == "otsu":
-            threshold = vg.calculateOtsuThreshold(exgrImg)
-            
-        _, exgrCount = vg.applyThreshold(exgrImg, threshold)
-        return exgrCount
 
-    def computeGLI(img, threshold=None):
-        gliImg = vg.computeGLIImage(img)
-        
-        if threshold is None:
-            threshold = 0
-        elif threshold == "otsu":
-            threshold = vg.calculateOtsuThreshold(gliImg)
-            
-        _, gliCount = vg.applyThreshold(gliImg, threshold)
-        
-        return gliCount
-
-    def computeVARI(img, threshold=None):
-        variImg = vg.computeVARIImage(img)
-
-        if threshold is None:
-            threshold = 0
-        elif threshold == "otsu":
-            threshold = vg.calculateOtsuThreshold(variImg)
-            
-        _, variCount = vg.applyThreshold(variImg, threshold)
-        
-        return variCount
-    '''
-
-    # All available functions. This is used to check that the relevant
+    # All available indexs. This is used to check that the relevant
     # index is one we can handle and allows for different functions
-    # for different indices. For example, have functions with
+    # for different indexes. For example, have functions with
     # different default thresholds, though most assume 0.
     all_functions = {
         'ExG':  computeIndexOtsu,
@@ -120,10 +84,10 @@ def process_images(input_dir, output_csv, selected_functions, thresholds, normal
         "NBI": computeIndex,
         "SAVI": computeIndex,
         "GMR": computeIndex,
-        # Add more function mappings here
+        # Add more index mappings here
     }
     
-    # Filter to selected functions
+    # Filter to selected functions/indexes
     if selected_functions:
         functions = {name: all_functions[name] for name in selected_functions 
                     if name in all_functions}
@@ -194,22 +158,22 @@ def process_images(input_dir, output_csv, selected_functions, thresholds, normal
     df.to_csv(output_csv, index=False)
     
     print(f"\nProcessing complete. Results saved to: {output_csv}")
-    print(f"Processed {len(df)} images with {len(functions)} function(s)")
+    print(f"Processed {len(df)} images with {len(functions)} index(es)")
     
     return df
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Process images with OpenCV and export results to CSV',
+        description='Process images and export results to CSV',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Process all images with all functions
+  # Process all images with all indexes
   python script.py /path/to/images output.csv
   
-  # Process with specific functions
-  python script.py /path/to/images output.csv -f function_1 function_2
+  # Process with specific indexes
+  python script.py /path/to/images output.csv -i index_1 index_2
   
   # Process with threshold parameter
   python script.py /path/to/images output.csv -f function_with_threshold -t 150
@@ -232,11 +196,11 @@ Examples:
     )
     
     parser.add_argument(
-        '-f', '--functions',
+        '-i', '--indexes',
         nargs='+',
         type=str,
         default=None,
-        help='Names of functions to apply (space-separated). If not specified, all functions will be used.'
+        help='Names of indexes to apply (space-separated). If not specified, all indexes will be used.'
     )
 
     # New version which allows multiple thresholds to be specified.
@@ -245,7 +209,7 @@ Examples:
         nargs='+',
         type=str,
         default=None,
-        help='Threshold values for each function specified with -f (in same order). Each value can be: a number (e.g., 150), "None" (use function default), or "otsu" (calculate Otsu threshold per image). Example: -f func1 func2 func3 -t otsu 200 None'
+        help='Threshold values for each index specified with -i (in same order). Each value can be: a number (e.g., 150), "None" (use default), or "otsu" (calculate Otsu threshold per image). Example: -i index1 index2 index3 -t otsu 200 None'
     )
 
     parser.add_argument(
@@ -256,33 +220,44 @@ Examples:
     )
     
     parser.add_argument(
-        '--list-functions',
+        '--list_indexes',
         action='store_true',
-        help='List all available functions and exit'
+        help='List all available indices and exit'
     )
     
     args = parser.parse_args()
     
-    # List functions if requested
-    if args.list_functions:
-        print("Available indices:")
+    # List indices if requested. Doesn;t work great since it still needs t he 
+    if args.list_indexes:
+        print("Available indexes:")
         print("  - ExG")
         print("  - ExGR")
         print("  - GLI")
         print("  - VARI")
+        print("  - RGBVI")
+        print("  - GLI")
+        print("  - DCGI")
+        print("  - NGBDI")
+        print("  - BGR")
+        print("  - GRVI")
+        print("  - NRI")
+        print("  - NGI")
+        print("  - NBI")
+        print("  - SAVI")
+        print("  - GMR")
         #print("\nAdd more functions in the script as needed.")
         return
 
-    # Parse thresholds to map each function to its threshold value
+    # Parse thresholds to map each index/function to its threshold value
     function_thresholds = {}
     
-    if args.functions and args.thresholds:
-        # Check if number of thresholds matches number of functions
-        if len(args.thresholds) != len(args.functions):
+    if args.indexes and args.thresholds:
+        # Check if number of thresholds matches number of indices
+        if len(args.thresholds) != len(args.indexes):
             parser.error(f"Number of thresholds ({len(args.thresholds)}) must match number of functions ({len(args.functions)})")
         
         # Map each function to its threshold
-        for func_name, threshold_str in zip(args.functions, args.thresholds):
+        for func_name, threshold_str in zip(args.indexes, args.thresholds):
             # Check if value is "otsu"
             if threshold_str.lower() == 'otsu':
                 function_thresholds[func_name] = "otsu"
@@ -296,15 +271,13 @@ Examples:
                 except ValueError:
                     print(f"Warning: Invalid threshold value '{threshold_str}' for function '{func_name}', expected number, 'None', or 'otsu'")
                     function_thresholds[func_name] = None
-    elif args.thresholds and not args.functions:
-        parser.error("Cannot specify thresholds (-t) without specifying functions (-f)")
+    elif args.thresholds and not args.indexes:
+        parser.error("Cannot specify thresholds (-t) without specifying indexes (-i)")
     
     if function_thresholds:
-        print(f"Function-threshold mapping:")
+        print(f"Index-threshold mapping:")
         for func, thresh in function_thresholds.items():
             print(f"  {func}: {thresh}")
-
-    #print("args.normalize", args.normalize)
     
     # Only normalize if we explicitly say to do that. Note that
     # args.normalize is None by default.
@@ -323,7 +296,7 @@ Examples:
         df = process_images(
             args.input_dir,
             args.output_csv,
-            args.functions,
+            args.indexes,
             function_thresholds,
             normalize
         )
@@ -341,22 +314,4 @@ Examples:
 
 if __name__ == "__main__":
     exit(main())
-'''
-    Usage examples:
-bash
-￼
-# Process all images with all functions
-python script.py /path/to/images output.csv
 
-# Process with specific functions only
-python script.py /path/to/images output.csv -f function_1 function_2
-
-# Use threshold parameter
-python script.py /path/to/images output.csv -f function_with_threshold -t 150
-
-# Combine multiple functions with threshold
-python script.py /path/to/images results.csv -f function_1 function_with_threshold -t 200
-
-# List available functions
-python script.py --list-functions
-'''

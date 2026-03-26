@@ -365,24 +365,18 @@ def calculateOtsuThreshold(img):
     return otsu_threshold
 
 # =========================
-# Averaging
+# Averaging etc
 # =========================
 
-# For some indices we want the average over the image, so we have a
-# variation of applyThreshold. As for applyThreshold, this expects to
-# be called on the result of computing the index, so we have a
-# "grayscale image" as input, where each pixel is the index value
-# (though it is float64 not a uint8)
+# For some indices we want the average over the image, As for
+# applyThreshold, this expects to be called on the result of computing
+# the index, so we have a "grayscale image" as input, where each pixel
+# is the index value (though it is float64 not a uint8)
+#
+# Similarly we may want max and min values
 
-def averageValue(img):
-    pixelCount = 0
-    pixelSum = pixelCount.astype(float64)
-    for i in range(img.shape[0]):
-        for j in range(img.shape[1]):
-            pixelSum += img[i][j]
-            pixelCount = pixelCount + 1
-                
-    return newImg, pixelCount
+def summaryValues(img):
+    return np.mean(img), np.max(img), np.min(img)
 
 # =========================
 # RGB to HSV using OpenCV
