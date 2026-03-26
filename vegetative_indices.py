@@ -119,9 +119,13 @@ def computeNGBDI(b, g, r):
     return (g - b) / (g + b + EPS)
 
 # 2G - B - R Index
-
 # literally just 2*g - b - r
 
+def computeBGR(b, g, r):
+    b = b.astype(np.float64)
+    g = g.astype(np.float64)
+    r = r.astype(np.float64)
+    return (2 * g) - b - r
 
 # =========================
 # Green Red Vegetation Index (GRVI)
@@ -165,6 +169,12 @@ def computeNBI(b, g, r):
 # =========================
 # Soil Adjusted Vegetation Index (SAVI – RGB-based)
 # =========================
+#
+# This matches the definition of SAVI in Rossi et al. but the original
+# definition from Huete, A.R., 1988. A soil-adjusted vegetation index
+# (SAVI). Remote sensing of environment, 25(3), pp.295-309. has NIR in
+# place of G.
+#
 def computeSAVI(b, g, r, L=0.5):
     g = g.astype(np.float64)
     r = r.astype(np.float64)
@@ -265,6 +275,10 @@ def computeIndex(img, indexFunc):
 # Allows one function to be called from outside the package, passing
 # the relevant pixel-wise function to computeIndex, eliminating the
 # need for one function per index to do this.
+#
+# Note that there should be a way of ocmbining this with the similar
+# list in apply-indices.py so that we only need to name each index
+# once.
 
 INDEX_FUNCTIONS = {
     "ExG": computeExG,
@@ -275,6 +289,7 @@ INDEX_FUNCTIONS = {
     "GLI": computeGLI,
     "DGCI": computeDGCI,
     "NGBDI": computeNGBDI,
+    "BGR": computeBGR,
     "GRVI": computeGRVI,
     "NRI": computeNRI,
     "NGI": computeNGI,

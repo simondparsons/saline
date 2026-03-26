@@ -113,6 +113,7 @@ def process_images(input_dir, output_csv, selected_functions, thresholds, normal
         "GLI": computeIndex,
         "DGCI": computeIndex,
         "NGBDI": computeIndex,
+        "BGR": computeIndex,
         "GRVI": computeIndex,
         "NRI": computeIndex,
         "NGI": computeIndex,
@@ -170,17 +171,13 @@ def process_images(input_dir, output_csv, selected_functions, thresholds, normal
             print(f" Normalizing: {img_path.name}")
             img  = vg.normalizeImage(img)
             
-        # Apply each function and store results
         row_data = {'filename': img_path.name}
-             
+
+        # Apply each function and store results     
         for index, func in functions.items():
             try:
                 #row_data[col_name] = func(img, **thresholds)
                 threshold_value = thresholds.get(index, None)
-                ######################
-                # This is where the function defined in the dictionary
-                # above is called. Need to interface this with the
-                # index dispatcher in vegetative_indices
                 row_data[index] = func(img, index, threshold_value)
             except Exception as e:
                 print(f"Error applying {index} to {img_path.name}: {e}")
