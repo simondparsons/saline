@@ -16,6 +16,7 @@ import argparse
 import numpy as np
 import cv2 as cv
 
+# Use CuPy for GPU support if GPU is available
 try:
     import cupy as cp
     GPU_AVAILABLE = True
@@ -124,9 +125,10 @@ def computeNGBDI(b, g, r):
     g = g.astype(np.float64)
     return (g - b) / (g + b + EPS)
 
-# 2G - B - R Index
+# =========================
+# 2G - B - R Index (BGR)
 # literally just 2*g - b - r
-
+# =========================
 def computeBGR(b, g, r):
     b = b.astype(np.float64)
     g = g.astype(np.float64)
@@ -141,7 +143,6 @@ def computeGRVI(b, g, r):
     r = r.astype(np.float64)
     return (g - r) / (g + r + EPS)
 
-
 # =========================
 # Normalized Redness Intensity (NRI)
 # =========================
@@ -150,7 +151,6 @@ def computeNRI(b, g, r):
     g = g.astype(np.float64)
     r = r.astype(np.float64)
     return r / (r + g + b + EPS)
-
 
 # =========================
 # Normalized Greenness Intensity (NGI)
@@ -161,7 +161,6 @@ def computeNGI(b, g, r):
     r = r.astype(np.float64)
     return g / (r + g + b + EPS)
 
-
 # =========================
 # Normalized Blueness Intensity (NBI)
 # =========================
@@ -170,7 +169,6 @@ def computeNBI(b, g, r):
     g = g.astype(np.float64)
     r = r.astype(np.float64)
     return b / (r + g + b + EPS)
-
 
 # =========================
 # Soil Adjusted Vegetation Index (SAVI – RGB-based)
@@ -185,7 +183,6 @@ def computeSAVI(b, g, r, L=0.5):
     g = g.astype(np.float64)
     r = r.astype(np.float64)
     return ((g - r) / (g + r + L + EPS)) * (1 + L)
-
 
 # =========================
 # Green Minus Red (GMR)
@@ -206,8 +203,6 @@ def normalizeBands(img):
     b = img[:,:,0].astype(np.float64) # get blue channel
     g = img[:,:,1].astype(np.float64) # get green channel
     r = img[:,:,2].astype(np.float64) # get red channel
-    
-    # Calculate sum with scaling to avoid overflow
     sum_channels = b + g + r
     
     # Avoid division by zero
@@ -227,8 +222,6 @@ def normalizeImage(img):
     b = img[:,:,0].astype(np.float64) # get blue channel
     g = img[:,:,1].astype(np.float64) # get green channel
     r = img[:,:,2].astype(np.float64) # get red channel
-    
-    # Calculate sum with scaling to avoid overflow
     sum_channels = b + g + r
     
     # Avoid division by zero
@@ -249,15 +242,34 @@ def normalizeImage(img):
     return normalized_uint8
 
 # =========================
-# Calculate an index across an image. Takes the relevant pixel-level
-# function as input.
+# Calculate an index across an image. 
 # =========================
 
-# Can't currently get this to be called properly from outside the module.
+# This is what is invoked by the dispatcher below. Uses GPU is
+# possible, else falls back to the legacy version (see below).
 #
-# ChatGPT suggested a dictionary-based dispatcher, and apply-indices
-# uses this route to make the call.
+# TBH, not completely clear that this will work given the way that the
+# index functions are written, but we can rework it to mirror
+# computeIndex.
+def computeIndexGPU(img, indexFunc):
+    """
+    GPU version of computeIndex using CuPy.
+    Falls back to CPU if CuPy is unavailable.
+    """
+    if not GPU_AVAILABLE:
+        return computeIndex(img, indexFunc)
 
+    img_gpu = cp.asarray(img)
+
+    b = img_gpu[:, :, 0]
+    g = img_gpu[:, :, 1]
+    r = img_gpu[:, :, 2]
+
+    result_gpu = indexFunc(b, g, r)
+
+    return cp.asnumpy(result_gpu)
+
+# CPU-only version
 def computeIndex(img, indexFunc):
     b = img[:,:,0] # get blue channel
     g = img[:,:,1] # get green channel
@@ -320,15 +332,15 @@ def computeIndexByName(img, index_name):
         Computed index image
 
     Given the nature of the computation, a GPU should speed things up
-    a lot, so we inlcude code to use a GPU is one is available.
+    a lot, so we include code to use a GPU is one is available.
     """
     
     if index_name not in INDEX_FUNCTIONS:
         raise ValueError(f"Unknown index '{index_name}'. "
                          f"Available indices: {list(INDEX_FUNCTIONS.keys())}")
 
-    return computeIndex(img, INDEX_FUNCTIONS[index_name])
-
+    #return computeIndex(img, INDEX_FUNCTIONS[index_name])
+    return computeIndexGPU(img, INDEX_FUNCTIONS[index_name])
 
 def computeMultipleIndices(img, index_names):
     """

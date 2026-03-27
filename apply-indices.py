@@ -16,6 +16,33 @@ import pandas as pd
 import vegetative_indices as vg
 from pathlib import Path
 
+# Compute index with default zero
+def computeIndex(img, index, threshold=None):
+    indexImg = vg.computeIndexByName(img, index)
+        
+    # No default, so use zero
+    if threshold is None:
+        threshold = 0
+    elif threshold == "otsu":
+        threshold = vg.calculateOtsuThreshold(indexImg)
+            
+    _, indexCount = vg.applyThreshold(indexImg, threshold)
+    return indexCount
+
+# Compute index with default Otsu
+def computeIndexOtsu(img, index, threshold=None):
+    indexImg = vg.computeIndexByName(img, index)
+        
+    # No default, so use Otsu
+    if threshold is None:
+        threshold = vg.calculateOtsuThreshold(indexImg)
+    elif threshold == "otsu":
+        threshold = vg.calculateOtsuThreshold(indexImg)
+            
+    _, indexCount = vg.applyThreshold(indexImg, threshold)
+    return indexCount
+
+
 def process_images(input_dir, output_csv, selected_functions, thresholds, normalize):
     """
     Process images from a directory, apply functions, and save results to CSV.
@@ -38,31 +65,6 @@ def process_images(input_dir, output_csv, selected_functions, thresholds, normal
     # vegetative indices. Different generic functions to allow
     # different defaults (could obviously do this in a different way)
 
-    # Compute index with default zero
-    def computeIndex(img, index, threshold=None):
-        indexImg = vg.computeIndexByName(img, index)
-        
-        # No default, so use zero
-        if threshold is None:
-            threshold = 0
-        elif threshold == "otsu":
-            threshold = vg.calculateOtsuThreshold(indexImg)
-            
-        _, indexCount = vg.applyThreshold(indexImg, threshold)
-        return indexCount
-
-    # Compute index with default Otsu
-    def computeIndexOtsu(img, index, threshold=None):
-        indexImg = vg.computeIndexByName(img, index)
-        
-        # No default, so use Otsu
-        if threshold is None:
-            threshold = vg.calculateOtsuThreshold(indexImg)
-        elif threshold == "otsu":
-            threshold = vg.calculateOtsuThreshold(indexImg)
-            
-        _, indexCount = vg.applyThreshold(indexImg, threshold)
-        return indexCount
 
     # All available indexs. This is used to check that the relevant
     # index is one we can handle and allows for different functions
