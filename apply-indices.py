@@ -122,7 +122,8 @@ def process_images(input_dir, output_csv, selected_functions, thresholds, normal
     for img_path in sorted(image_files):
         print(f"Processing: {img_path.name}")
         
-        # Read image
+        # Read image. Using OpenCv to read images to they are in BGR
+        # format.
         img = cv2.imread(str(img_path))
        
         if img is None:
@@ -140,7 +141,7 @@ def process_images(input_dir, output_csv, selected_functions, thresholds, normal
         # Apply each function and store results     
         for index, func in functions.items():
             try:
-                #row_data[col_name] = func(img, **thresholds)
+                print(f" Applying {index} to {img_path.name}")
                 threshold_value = thresholds.get(index, None)
                 row_data[index] = func(img, index, threshold_value)
             except Exception as e:
@@ -235,7 +236,6 @@ Examples:
         print("  - GLI")
         print("  - VARI")
         print("  - RGBVI")
-        print("  - GLI")
         print("  - DCGI")
         print("  - NGBDI")
         print("  - BGR")
@@ -245,7 +245,7 @@ Examples:
         print("  - NBI")
         print("  - SAVI")
         print("  - GMR")
-        #print("\nAdd more functions in the script as needed.")
+        #print("\nAdd more indexes/functions in the script as needed.")
         return
 
     # Parse thresholds to map each index/function to its threshold value

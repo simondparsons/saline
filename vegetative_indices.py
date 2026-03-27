@@ -16,6 +16,12 @@ import argparse
 import numpy as np
 import cv2 as cv
 
+try:
+    import cupy as cp
+    GPU_AVAILABLE = True
+except ImportError:
+    GPU_AVAILABLE = False
+
 # Computing vegetative indices. These functions work at the pixel level.
 
 # Definitions for ExG, ExGR, GLI and VARI come from: L. Rosen,
@@ -299,8 +305,7 @@ INDEX_FUNCTIONS = {
 }
 
 def computeIndexByName(img, index_name):
-    """
-    Compute a vegetation index by name.
+    """Compute a vegetation index by name.
 
     Parameters
     ----------
@@ -313,7 +318,11 @@ def computeIndexByName(img, index_name):
     -------
     ndarray
         Computed index image
+
+    Given the nature of the computation, a GPU should speed things up
+    a lot, so we inlcude code to use a GPU is one is available.
     """
+    
     if index_name not in INDEX_FUNCTIONS:
         raise ValueError(f"Unknown index '{index_name}'. "
                          f"Available indices: {list(INDEX_FUNCTIONS.keys())}")
