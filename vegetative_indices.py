@@ -35,9 +35,6 @@ except ImportError:
 # Epsilon to use to avoid division by zero.
 EPS = 1e-10
 
-# Need to rejig the 64-bit conversion to work with the vectorized
-# version of computerIndex
-
 # =========================
 # Excess green (ExG)
 # =========================
@@ -47,10 +44,6 @@ def computeExG(b, g, r):
     g = np.float64(g)
     r = np.float64(r)
 
-    #b = b.astype(np.float64)
-    #g = g.astype(np.float64)
-    #r = r.astype(np.float64)
-
     return (((2 * g) - b) - r)
 
 # =========================
@@ -58,9 +51,9 @@ def computeExG(b, g, r):
 # =========================
 def computeExGR(b, g, r):
     # Convert to float64 first to avoid overflow
-    b = b.astype(np.float64)
-    g = g.astype(np.float64)
-    r = r.astype(np.float64)
+    b = np.float64(b)
+    g = np.float64(g)
+    r = np.float64(r)
     
     return (((3 * g) - (2.4 * r)) - b)
 
@@ -69,9 +62,9 @@ def computeExGR(b, g, r):
 # =========================
 def computeGLI(b, g, r):
     # Convert to float64 first to avoid overflow
-    b = b.astype(np.float64)
-    g = g.astype(np.float64)
-    r = r.astype(np.float64)
+    b = np.float64(b)
+    g = np.float64(g)
+    r = np.float64(r)
     
     # Avoid division by zero
     denominator = ((2 * g) + b) + r
@@ -84,9 +77,9 @@ def computeGLI(b, g, r):
 # =========================
 def computeVARI(b, g, r):
     # Convert to float64 first to avoid overflow
-    b = b.astype(np.float64)
-    g = g.astype(np.float64)
-    r = r.astype(np.float64)
+    b = np.float64(b)
+    g = np.float64(g)
+    r = np.float64(r)
     
     denominator = (g + r) - b
     if denominator == 0:
@@ -104,9 +97,10 @@ def computeVARI(b, g, r):
 # Red Green Blue Vegetation Index (RGBVI)
 # =========================
 def computeRGBVI(b, g, r):
-    b = b.astype(np.float64)
-    g = g.astype(np.float64)
-    r = r.astype(np.float64)
+    b = np.float64(b)
+    g = np.float64(g)
+    r = np.float64(r)
+
     return (g**2 - (r * b)) / (g**2 + (r * b) + EPS)
 
 
@@ -117,10 +111,9 @@ def computeDGCI(b, g, r):
     # DGCI is defined in Rossi et al. in terms of HSV
     h, s, v = rgb_to_hsv(r, g, b)
     
-    h = h.astype(np.float64)
-    s = s.astype(np.float64)
+    h = np.float64(h) 
+    s = np.float64(s)
     # Don't need v in the calculation
-    # v = v.astype(np.float64)
     return (((h - 60)/60) + (1 - s) + (1 - b)) / 3
 
 
@@ -128,8 +121,9 @@ def computeDGCI(b, g, r):
 # Normalized Green Blue Difference Index (NGBDI)
 # =========================
 def computeNGBDI(b, g, r):
-    b = b.astype(np.float64)
-    g = g.astype(np.float64)
+    b = np.float64(b)
+    g = np.float64(g)
+
     return (g - b) / (g + b + EPS)
 
 # =========================
@@ -137,44 +131,49 @@ def computeNGBDI(b, g, r):
 # literally just 2*g - b - r
 # =========================
 def computeBGR(b, g, r):
-    b = b.astype(np.float64)
-    g = g.astype(np.float64)
-    r = r.astype(np.float64)
+    b = np.float64(b)
+    g = np.float64(g)
+    r = np.float64(r)
+
     return (2 * g) - b - r
 
 # =========================
 # Green Red Vegetation Index (GRVI)
 # =========================
 def computeGRVI(b, g, r):
-    g = g.astype(np.float64)
-    r = r.astype(np.float64)
+    g = np.float64(g)
+    r = np.float64(r)
+
     return (g - r) / (g + r + EPS)
 
 # =========================
 # Normalized Redness Intensity (NRI)
 # =========================
 def computeNRI(b, g, r):
-    b = b.astype(np.float64)
-    g = g.astype(np.float64)
-    r = r.astype(np.float64)
+    b = np.float64(b)
+    g = np.float64(g)
+    r = np.float64(r)
+
     return r / (r + g + b + EPS)
 
 # =========================
 # Normalized Greenness Intensity (NGI)
 # =========================
 def computeNGI(b, g, r):
-    b = b.astype(np.float64)
-    g = g.astype(np.float64)
-    r = r.astype(np.float64)
+    b = np.float64(b)
+    g = np.float64(g)
+    r = np.float64(r)
+
     return g / (r + g + b + EPS)
 
 # =========================
 # Normalized Blueness Intensity (NBI)
 # =========================
 def computeNBI(b, g, r):
-    b = b.astype(np.float64)
-    g = g.astype(np.float64)
-    r = r.astype(np.float64)
+    b = np.float64(b)
+    g = np.float64(g)
+    r = np.float64(r)
+
     return b / (r + g + b + EPS)
 
 # =========================
@@ -187,16 +186,18 @@ def computeNBI(b, g, r):
 # place of G.
 #
 def computeSAVI(b, g, r, L=0.5):
-    g = g.astype(np.float64)
-    r = r.astype(np.float64)
+    g = np.float64(g)
+    r = np.float64(r)
+
     return ((g - r) / (g + r + L + EPS)) * (1 + L)
 
 # =========================
 # Green Minus Red (GMR)
 # =========================
 def computeGMR(b, g, r):
-    g = g.astype(np.float64)
-    r = r.astype(np.float64)
+    g = np.float64(g)
+    r = np.float64(r)
+
     return g - r
 
 # =========================
@@ -223,7 +224,8 @@ def normalizeBands(img):
     # Note, need to convert these back to uint8 when used.
     return b_n, g_n, r_n
 
-# The same, but returns a normalized image
+# The same, but returns a normalized image. This is what is called
+# from apply-indices.
 def normalizeImage(img):
 
     b = img[:,:,0].astype(np.float64) # get blue channel
@@ -243,11 +245,10 @@ def normalizeImage(img):
     normalized = np.stack([b_n, g_n, r_n], axis=2)
     
     # Scale to 0-255 range and convert to uint8
-    #normalized_scaled = cv.normalize(normalized, None, 0, 255, cv.NORM_MINMAX)
-    #normalized_uint8 = normalized_scaled.astype(np.uint8)
+    normalized_scaled = cv.normalize(normalized, None, 0, 255, cv.NORM_MINMAX)
+    normalized_uint8 = normalized_scaled.astype(np.uint8)
     
-    #return normalized_uint8
-    return normalized
+    return normalized_uint8
 
 # =========================
 # Calculate an index across an image. 
@@ -255,6 +256,8 @@ def normalizeImage(img):
 
 # This is what is invoked by the dispatcher below. Uses GPU/CuPy if
 # possible, else falls back to the legacy version (see below).
+#
+# Still needs to be tested on a GPU
 def computeIndexGPU(img, indexFunc):
     if not GPU_AVAILABLE:
         return computeIndex(img, indexFunc)
