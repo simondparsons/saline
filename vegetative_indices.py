@@ -43,7 +43,7 @@ def computeExG(b, g, r):
     b = b.astype(np.float64)
     g = g.astype(np.float64)
     r = r.astype(np.float64)
-    
+
     return (((2 * g) - b) - r)
 
 # =========================
@@ -236,10 +236,11 @@ def normalizeImage(img):
     normalized = np.stack([b_n, g_n, r_n], axis=2)
     
     # Scale to 0-255 range and convert to uint8
-    normalized_scaled = cv.normalize(normalized, None, 0, 255, cv.NORM_MINMAX)
-    normalized_uint8 = normalized_scaled.astype(np.uint8)
+    #normalized_scaled = cv.normalize(normalized, None, 0, 255, cv.NORM_MINMAX)
+    #normalized_uint8 = normalized_scaled.astype(np.uint8)
     
-    return normalized_uint8
+    #return normalized_uint8
+    return normalized
 
 # =========================
 # Calculate an index across an image. 
@@ -270,17 +271,42 @@ def computeIndexGPU(img, indexFunc):
     return cp.asnumpy(result_gpu)
 
 # CPU-only version
+
+# Original, pixel, by pixel. Works but slow
 def computeIndex(img, indexFunc):
     b = img[:,:,0] # get blue channel
     g = img[:,:,1] # get green channel
     r = img[:,:,2] # get red channel
 
-    newImg = np.zeros(b.shape)
+    newImg = np.zeros(b.shape).astype(np.float64)
     
     for i in range(img.shape[0]):
         for j in range(img.shape[1]):
             newImg[i][j] = indexFunc(b[i][j], g[i][j], r[i][j])
 
+    # Return images that look like standard images
+    imgScaled = cv.normalize(newImg, None, 0, 255, cv.NORM_MINMAX)
+    imgUint8 = imgScaled.astype(np.uint8)
+    return imgUint8
+
+# Using numpy vectorization. Currently throws an error because the
+# index fucntion applies .astype(np.float64) to the incoming arguments
+# and that borks.
+def computeIndexVector(img, indexFunc):
+    b = img[:,:,0] # get blue channel
+    g = img[:,:,1] # get green channel
+    r = img[:,:,2] # get red channel
+
+    b_float = b.astype(np.float64)
+    g_float = g.astype(np.float64)
+    r_float = r.astype(np.float64)
+    
+    # Vectorize the index function
+    vectorizedFunc = np.vectorize(indexFunc)
+
+    # Apply to entire arrays
+    newImg = vectorizedFunc(b_float, g_float, r_float)
+    
     # Return images that look like standard images
     imgScaled = cv.normalize(newImg, None, 0, 255, cv.NORM_MINMAX)
     imgUint8 = imgScaled.astype(np.uint8)
