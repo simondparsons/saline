@@ -35,14 +35,21 @@ except ImportError:
 # Epsilon to use to avoid division by zero.
 EPS = 1e-10
 
+# Need to rejig the 64-bit conversion to work with the vectorized
+# version of computerIndex
+
 # =========================
 # Excess green (ExG)
 # =========================
 def computeExG(b, g, r):
     # Convert to float64 first to avoid overflow
-    b = b.astype(np.float64)
-    g = g.astype(np.float64)
-    r = r.astype(np.float64)
+    b = np.float64(b)
+    g = np.float64(g)
+    r = np.float64(r)
+
+    #b = b.astype(np.float64)
+    #g = g.astype(np.float64)
+    #r = r.astype(np.float64)
 
     return (((2 * g) - b) - r)
 
@@ -246,17 +253,9 @@ def normalizeImage(img):
 # Calculate an index across an image. 
 # =========================
 
-# This is what is invoked by the dispatcher below. Uses GPU is
+# This is what is invoked by the dispatcher below. Uses GPU/CuPy if
 # possible, else falls back to the legacy version (see below).
-#
-# TBH, not completely clear that this will work given the way that the
-# index functions are written, but we can rework it to mirror
-# computeIndex.
 def computeIndexGPU(img, indexFunc):
-    """
-    GPU version of computeIndex using CuPy.
-    Falls back to CPU if CuPy is unavailable.
-    """
     if not GPU_AVAILABLE:
         return computeIndex(img, indexFunc)
 
@@ -268,12 +267,13 @@ def computeIndexGPU(img, indexFunc):
 
     result_gpu = indexFunc(b, g, r)
 
+    # Will likely need to normalize and turn into uint8 when done
     return cp.asnumpy(result_gpu)
 
-# CPU-only version
-
+# CPU-only versions
+#
 # Original, pixel, by pixel. Works but slow
-def computeIndex(img, indexFunc):
+def computeIndexOld(img, indexFunc):
     b = img[:,:,0] # get blue channel
     g = img[:,:,1] # get green channel
     r = img[:,:,2] # get red channel
@@ -289,23 +289,17 @@ def computeIndex(img, indexFunc):
     imgUint8 = imgScaled.astype(np.uint8)
     return imgUint8
 
-# Using numpy vectorization. Currently throws an error because the
-# index fucntion applies .astype(np.float64) to the incoming arguments
-# and that borks.
-def computeIndexVector(img, indexFunc):
+# Using numpy vectorization 
+def computeIndex(img, indexFunc):
     b = img[:,:,0] # get blue channel
     g = img[:,:,1] # get green channel
     r = img[:,:,2] # get red channel
 
-    b_float = b.astype(np.float64)
-    g_float = g.astype(np.float64)
-    r_float = r.astype(np.float64)
-    
     # Vectorize the index function
     vectorizedFunc = np.vectorize(indexFunc)
 
-    # Apply to entire arrays
-    newImg = vectorizedFunc(b_float, g_float, r_float)
+    # Apply to entire array
+    newImg = vectorizedFunc(b, g, r)
     
     # Return images that look like standard images
     imgScaled = cv.normalize(newImg, None, 0, 255, cv.NORM_MINMAX)
