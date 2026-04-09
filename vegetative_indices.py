@@ -260,13 +260,13 @@ def computeIndexGPU(img, indexFunc):
     if not GPU_AVAILABLE:
         return computeIndex(img, indexFunc)
 
-    newImg = np.zeros(b.shape).astype(np.float64)
     img_gpu = cp.asarray(img)
 
     b = img_gpu[:, :, 0]
     g = img_gpu[:, :, 1]
     r = img_gpu[:, :, 2]
 
+    newImg = np.zeros(b.shape).astype(np.float64)
     #result_gpu = indexFunc(b, g, r)
     newImg = indexFunc(b, g, r)
 
