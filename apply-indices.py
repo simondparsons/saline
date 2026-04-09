@@ -1,10 +1,19 @@
 # apply-indices.py
 #
-# Code to apply various vegetative indices to a set of input images
+# Code to apply various vegetative indices to a set of input images.
 #
 # Simon Parsons
 # University of Lincoln
 # 26-03-06
+#
+# The code assumes that we will be applying some kind of threshold to
+# the result of computing the index at a pixel level, so that it will
+# produce a mask, and then counts the number of pixels that pass the
+# threshold. This makes sense for the first set of indices that I was
+# working with (ExG, ExGR, GLI and VARI), but it is not clear that it
+# makes so much sense when working with a wider range of
+# indices. Hence the very similar script to compute various aspects of
+# the pixelwise index value.
 
 # Written with liberal help from Claude Sonnet 4.5 and ChatGPT
 # 5.2-Auto, as in the LLMs did the heavy lifting and I interfaced
@@ -16,7 +25,7 @@ import pandas as pd
 import vegetative_indices as vg
 from pathlib import Path
 
-# Compute index with default zero
+# Compute index with default threshold of zero.
 def computeIndex(img, index, threshold=None):
     indexImg = vg.computeIndexByName(img, index)
         
@@ -65,18 +74,18 @@ def process_images(input_dir, output_csv, selected_functions, thresholds, normal
     # vegetative indices. Different generic functions to allow
     # different defaults (could obviously do this in a different way)
 
-
-    # All available indexs. This is used to check that the relevant
+    # All available indexes. This is used to check that the relevant
     # index is one we can handle and allows for different functions
     # for different indexes. For example, have functions with
-    # different default thresholds, though most assume 0.
+    # different default thresholds, though most assume 0. This is
+    # based on (Rosen at al., 2024) (see vegetative-indices.py) which
+    # gave thresholds for ExG, ExGR, GLI and VARI.
     all_functions = {
         'ExG':  computeIndexOtsu,
         'ExGR': computeIndex,
         'GLI':  computeIndex,
         'VARI': computeIndex,
         "RGBVI": computeIndex,
-        "GLI": computeIndex,
         "DGCI": computeIndex,
         "NGBDI": computeIndex,
         "BGR": computeIndex,
@@ -124,7 +133,7 @@ def process_images(input_dir, output_csv, selected_functions, thresholds, normal
     for img_path in sorted(image_files):
         print(f"Processing: {img_path.name}")
         
-        # Read image. Using OpenCv to read images to they are in BGR
+        # Read image. Using OpenCV to read images to they are in BGR
         # format.
         img = cv2.imread(str(img_path))
        
@@ -230,7 +239,7 @@ Examples:
     
     args = parser.parse_args()
     
-    # List indices if requested. Doesn;t work great since it still needs t he 
+    # List indices if requested. 
     if args.list_indexes:
         print("Available indexes:")
         print("  - ExG")

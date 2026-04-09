@@ -317,7 +317,7 @@ def computeIndex(img, indexFunc):
 # the relevant pixel-wise function to computeIndex, eliminating the
 # need for one function per index to do this.
 #
-# Note that there should be a way of ocmbining this with the similar
+# Note that there should be a way of combining this with the similar
 # list in apply-indices.py so that we only need to name each index
 # once.
 
