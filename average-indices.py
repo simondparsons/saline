@@ -26,7 +26,7 @@ def computeIndex(img, index):
     indexImg = vg.computeIndexByName(img, index)
 
     # For now only the mean index value seems useful
-    indexMean, _, _ = vg.summaryValues(indexImg)
+    _, indexMean, _, _ = vg.summaryValues(indexImg)
     return indexMean
 
 def process_images(input_dir, output_csv, selected_functions, normalize):

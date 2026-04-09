@@ -260,16 +260,19 @@ def computeIndexGPU(img, indexFunc):
     if not GPU_AVAILABLE:
         return computeIndex(img, indexFunc)
 
+    newImg = np.zeros(b.shape).astype(np.float64)
     img_gpu = cp.asarray(img)
 
     b = img_gpu[:, :, 0]
     g = img_gpu[:, :, 1]
     r = img_gpu[:, :, 2]
 
-    result_gpu = indexFunc(b, g, r)
+    #result_gpu = indexFunc(b, g, r)
+    newImg = indexFunc(b, g, r)
 
     # Will likely need to normalize and turn into uint8 when done
-    return cp.asnumpy(result_gpu)
+    #return cp.asnumpy(result_gpu)
+    return cp.asnumpy(newImg)
 
 # CPU-only versions
 #
@@ -419,7 +422,7 @@ def calculateOtsuThreshold(img):
 # seem this is helpful, min is 0 and max is 255)
 
 def summaryValues(img):
-    return np.mean(img), np.max(img), np.min(img)
+    return np.mean(img), np.median(img), np.max(img), np.min(img), 
 
 # =========================
 # RGB to HSV using OpenCV
