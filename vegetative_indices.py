@@ -270,10 +270,11 @@ def computeIndexGPU(img, indexFunc):
     g = img_gpu[:, :, 1]
     r = img_gpu[:, :, 2]
 
-    print("Calling GPU stuff")
+    print("Creating rslts matrix")
     
     result_gpu = cp.zeros(b.shape)
     #
+    print("Calling GPU stuff")
     result_gpu = indexFunc(b, g, r)
     #newImg = indexFunc(b, g, r)
 
