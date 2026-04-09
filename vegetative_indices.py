@@ -260,6 +260,8 @@ def computeIndexGPU(img, indexFunc):
     if not GPU_AVAILABLE:
         return computeIndex(img, indexFunc)
 
+    print("Creating GPU friendly array")
+    
     img_gpu = cp.asarray(img)
 
     print("Splitting BGR planes")
