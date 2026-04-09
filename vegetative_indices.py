@@ -260,7 +260,7 @@ def computeIndexGPU(img, indexFunc):
     if not GPU_AVAILABLE:
         return computeIndex(img, indexFunc)
 
-    img_gpu = cp.asarray(img)
+    img_gpu = cp.asarray(img.get())
 
     b = img_gpu[:, :, 0]
     g = img_gpu[:, :, 1]
@@ -268,7 +268,7 @@ def computeIndexGPU(img, indexFunc):
 
     #newImg = np.zeros(b.shape).astype(np.float64)
     #
-    result_gpu = indexFunc(b, g, r).get(result_gpu)
+    result_gpu = indexFunc(b, g, r)
     #newImg = indexFunc(b, g, r)
 
     # Will likely need to normalize and turn into uint8 when done
