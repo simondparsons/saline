@@ -62,9 +62,9 @@ def computeExGR(b, g, r):
 # =========================
 def computeGLI(b, g, r):
     # Convert to float64 first to avoid overflow
-    b = np.float64(b.get())
-    g = np.float64(g.get())
-    r = np.float64(r.get())
+    b = np.float64(b)
+    g = np.float64(g)
+    r = np.float64(r)
     
     # Avoid division by zero
     denominator = ((2 * g) + b) + r + EPS
@@ -275,12 +275,12 @@ def computeIndexGPU(img, indexFunc):
     result_gpu = cp.zeros(b.shape)
     #
     print("Calling GPU stuff")
-    result_gpu = indexFunc(b, g, r)
+    result_gpu = indexFunc(b.get(), g.get(), r.get())
     #newImg = indexFunc(b, g, r)
 
     print("Result computed")
     
-    newImg =  cp.asnumpy(result_gpu.get())
+    newImg =  cp.asnumpy(result_gpu)
     # Will likely need to normalize and turn into uint8 when done
     #return cp.asnumpy(result_gpu)
     return cp.asnumpy(newImg)
