@@ -271,6 +271,8 @@ def computeIndexGPU(img, indexFunc):
     result_gpu = indexFunc(b, g, r)
     #newImg = indexFunc(b, g, r)
 
+    print("Result computed")
+    
     newImg =  cp.asnumpy(result_gpu.get())
     # Will likely need to normalize and turn into uint8 when done
     #return cp.asnumpy(result_gpu)
