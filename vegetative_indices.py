@@ -268,11 +268,11 @@ def computeIndexGPU(img, indexFunc):
 
     #newImg = np.zeros(b.shape).astype(np.float64)
     #
-    result_gpu = indexFunc(b, g, r)
+    result_gpu = indexFunc(b, g, r).get()
     #newImg = indexFunc(b, g, r)
 
     # Will likely need to normalize and turn into uint8 when done
-    return cp.asnumpy(result_gpu.get())
+    return cp.asnumpy(result_gpu)
     #return cp.asnumpy(newImg)
 
 # CPU-only versions
