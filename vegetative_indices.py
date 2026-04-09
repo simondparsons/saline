@@ -262,10 +262,14 @@ def computeIndexGPU(img, indexFunc):
 
     img_gpu = cp.asarray(img)
 
+    print("Splitting BGR planes")
+    
     b = img_gpu[:, :, 0]
     g = img_gpu[:, :, 1]
     r = img_gpu[:, :, 2]
 
+    print("Calling GPU stuff")
+    
     result_gpu = cp.zeros(b.shape).astype(np.float64)
     #
     result_gpu = indexFunc(b, g, r)
