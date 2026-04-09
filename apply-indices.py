@@ -34,11 +34,14 @@ def computeIndex(img, index, threshold=None):
         threshold = 0
     elif threshold == "otsu":
         threshold = vg.calculateOtsuThreshold(indexImg)
+    elif threshold == "median":
+        _, threshold, _, _ = vg.summaryValues(indexImg)
             
     _, indexCount = vg.applyThreshold(indexImg, threshold)
     return indexCount
 
-# Compute index with default Otsu
+# Compute index with default Otsu. Not as useful as I thought it would
+# be, so I haven't been updating it.
 def computeIndexOtsu(img, index, threshold=None):
     indexImg = vg.computeIndexByName(img, index)
         
@@ -81,7 +84,7 @@ def process_images(input_dir, output_csv, selected_functions, thresholds, normal
     # based on (Rosen at al., 2024) (see vegetative-indices.py) which
     # gave thresholds for ExG, ExGR, GLI and VARI.
     all_functions = {
-        'ExG':  computeIndexOtsu,
+        'ExG':  computeIndex,
         'ExGR': computeIndex,
         'GLI':  computeIndex,
         'VARI': computeIndex,
@@ -272,12 +275,15 @@ Examples:
             # Check if value is "None"
             elif threshold_str == 'None' or threshold_str == 'none':
                 function_thresholds[func_name] = None
+            # Check if value is "median"
+            elif threshold_str.lower() == 'median':
+                function_thresholds[func_name] = "median"
             # Try to convert to float
             else:
                 try:
                     function_thresholds[func_name] = float(threshold_str)
                 except ValueError:
-                    print(f"Warning: Invalid threshold value '{threshold_str}' for function '{func_name}', expected number, 'None', or 'otsu'")
+                    print(f"Warning: Invalid threshold value '{threshold_str}' for function '{func_name}', expected number, 'None', 'median', or 'otsu'")
                     function_thresholds[func_name] = None
     elif args.thresholds and not args.indexes:
         parser.error("Cannot specify thresholds (-t) without specifying indexes (-i)")
