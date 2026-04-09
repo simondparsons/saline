@@ -262,11 +262,11 @@ def computeIndexGPU(img, indexFunc):
 
     img_gpu = cp.asarray(img)
 
-    b = img_gpu[:, :, 0].get()
-    g = img_gpu[:, :, 1].get()
-    r = img_gpu[:, :, 2].get()
+    b = img_gpu[:, :, 0]
+    g = img_gpu[:, :, 1]
+    r = img_gpu[:, :, 2]
 
-    #newImg = np.zeros(b.shape).astype(np.float64)
+    result_gpu = cp.zeros(b.shape).astype(np.float64)
     #
     result_gpu = indexFunc(b, g, r).get()
     #newImg = indexFunc(b, g, r)
