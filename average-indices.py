@@ -1,23 +1,18 @@
-# apply-indices.py
+# average-indices.py
 #
-# Code to apply various vegetative indices to a set of input images.
+# Code to compute stats from various vegetative indices over a set of
+# input images.
 #
 # Simon Parsons
 # University of Lincoln
-# 26-03-06
+# 26-04-09
 #
-# The code assumes that we will be applying some kind of threshold to
-# the result of computing the index at a pixel level, so that it will
-# produce a mask, and then counts the number of pixels that pass the
-# threshold. This makes sense for the first set of indices that I was
-# working with (ExG, ExGR, GLI and VARI), but it is not clear that it
-# makes so much sense when working with a wider range of
-# indices. Hence the very similar script to compute various aspects of
-# the pixelwise index value.
 
 # Written with liberal help from Claude Sonnet 4.5 and ChatGPT
 # 5.2-Auto, as in the LLMs did the heavy lifting and I interfaced
 # their work with the code I already had for the vegetative indices.
+#
+# A mod of apply-indices.py. This means it is rather repetitive (if you comisder apply-indices.py as well) but seemed 
 
 import cv2
 import argparse
@@ -25,34 +20,16 @@ import pandas as pd
 import vegetative_indices as vg
 from pathlib import Path
 
-# Compute index with default threshold of zero.
-def computeIndex(img, index, threshold=None):
+# Compute index. This time we don't use a threshold, so things are
+# simpler.
+def computeIndex(img, index):
     indexImg = vg.computeIndexByName(img, index)
-        
-    # No default, so use zero
-    if threshold is None:
-        threshold = 0
-    elif threshold == "otsu":
-        threshold = vg.calculateOtsuThreshold(indexImg)
-            
-    _, indexCount = vg.applyThreshold(indexImg, threshold)
-    return indexCount
 
-# Compute index with default Otsu
-def computeIndexOtsu(img, index, threshold=None):
-    indexImg = vg.computeIndexByName(img, index)
-        
-    # No default, so use Otsu
-    if threshold is None:
-        threshold = vg.calculateOtsuThreshold(indexImg)
-    elif threshold == "otsu":
-        threshold = vg.calculateOtsuThreshold(indexImg)
-            
-    _, indexCount = vg.applyThreshold(indexImg, threshold)
-    return indexCount
+    # For now only the mean index value seems useful
+    indexMean, _, _ = vg.summaryValues(indexImg)
+    return indexMean
 
-
-def process_images(input_dir, output_csv, selected_functions, thresholds, normalize):
+def process_images(input_dir, output_csv, selected_functions, normalize):
     """
     Process images from a directory, apply functions, and save results to CSV.
     
@@ -75,13 +52,9 @@ def process_images(input_dir, output_csv, selected_functions, thresholds, normal
     # different defaults (could obviously do this in a different way)
 
     # All available indexes. This is used to check that the relevant
-    # index is one we can handle and allows for different functions
-    # for different indexes. For example, have functions with
-    # different default thresholds, though most assume 0. This is
-    # based on (Rosen at al., 2024) (see vegetative-indices.py) which
-    # gave thresholds for ExG, ExGR, GLI and VARI.
+    # index is one we can handle.
     all_functions = {
-        'ExG':  computeIndexOtsu,
+        'ExG':  computeIndex,
         'ExGR': computeIndex,
         'GLI':  computeIndex,
         'VARI': computeIndex,
@@ -153,8 +126,9 @@ def process_images(input_dir, output_csv, selected_functions, thresholds, normal
         for index, func in functions.items():
             try:
                 print(f" Applying {index} to {img_path.name}")
-                threshold_value = thresholds.get(index, None)
-                row_data[index] = func(img, index, threshold_value)
+                #threshold_value = thresholds.get(index, None)
+                #row_data[index] = func(img, index, threshold_value)
+                row_data[index] = func(img, index)
             except Exception as e:
                 print(f"Error applying {index} to {img_path.name}: {e}")
                 row_data[index] = None
@@ -182,14 +156,11 @@ def main():
         epilog="""
 Examples:
   # Process all images with all indexes
-  python apply-indices.py /path/to/images output.csv
+  python average-indices.py /path/to/images output.csv
   
   # Process with specific indexes
-  python apply-indices.py /path/to/images output.csv -i index_1 index_2
-  
-  # Process with threshold parameter
-  python apply-indices.py /path/to/images output.csv -i index_1 index_2 -t 100 150
-        """
+  python average-indices.py /path/to/images output.csv -i index_1 index_2
+          """
     )
     
     parser.add_argument(
@@ -212,15 +183,6 @@ Examples:
         help='Names of indexes to apply (space-separated). If not specified, all indexes will be used.'
     )
 
-    # New version which allows multiple thresholds to be specified.
-    parser.add_argument(
-        '-t', '--thresholds',
-        nargs='+',
-        type=str,
-        default=None,
-        help='Threshold values for each index specified with -i (in same order). Each value can be: a number (e.g., 150), "None" (use default), or "otsu" (calculate Otsu threshold per image). Example: -i index1 index2 index3 -t otsu 200 None'
-    )
-
     parser.add_argument(
         '-n', '--normalize',
         type=str,
@@ -231,7 +193,7 @@ Examples:
     parser.add_argument(
         '--list_indexes',
         action='store_true',
-        help='List all available indices and exit'
+        help='List all available indexes and exit'
     )
     
     args = parser.parse_args()
@@ -255,7 +217,7 @@ Examples:
         print("  - GMR")
         #print("\nAdd more indexes/functions in the script as needed.")
         return
-
+    '''
     # Parse thresholds to map each index/function to its threshold value
     function_thresholds = {}
     
@@ -286,6 +248,7 @@ Examples:
         print(f"Index-threshold mapping:")
         for func, thresh in function_thresholds.items():
             print(f"  {func}: {thresh}")
+    '''
     
     # Only normalize if we explicitly say to do that. Note that
     # args.normalize is None by default.
@@ -305,7 +268,7 @@ Examples:
             args.input_dir,
             args.output_csv,
             args.indexes,
-            function_thresholds,
+            #function_thresholds,
             normalize
         )
         

@@ -67,9 +67,8 @@ def computeGLI(b, g, r):
     r = np.float64(r)
     
     # Avoid division by zero
-    denominator = ((2 * g) + b) + r
-    if denominator == 0:
-        denominator = EPS
+    denominator = ((2 * g) + b) + r + EPS
+    
     return ((((2 * g) - b) - r) / denominator)
 
 # =========================
@@ -81,9 +80,8 @@ def computeVARI(b, g, r):
     g = np.float64(g)
     r = np.float64(r)
     
-    denominator = (g + r) - b
-    if denominator == 0:
-        denominator = EPS
+    denominator = (g + r) - b + EPS
+
     return ((g - r) / denominator)
 
 # Checked against: A. Rossi, S. Tavarini, M. Tognoni, L. G. Angelini,
@@ -417,7 +415,8 @@ def calculateOtsuThreshold(img):
 # the index, so we have a "grayscale image" as input, where each pixel
 # is the index value (though it is float64 not a uint8)
 #
-# Similarly we may want max and min values
+# Similarly we may want max and min values (though for now it doesn't
+# seem this is helpful, min is 0 and max is 255)
 
 def summaryValues(img):
     return np.mean(img), np.max(img), np.min(img)
