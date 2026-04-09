@@ -272,7 +272,7 @@ def computeIndexGPU(img, indexFunc):
 
     print("Calling GPU stuff")
     
-    result_gpu = cp.zeros(b.shape).astype(np.float64)
+    result_gpu = cp.zeros(b.shape)
     #
     result_gpu = indexFunc(b, g, r)
     #newImg = indexFunc(b, g, r)
