@@ -62,9 +62,9 @@ def computeExGR(b, g, r):
 # =========================
 def computeGLI(b, g, r):
     # Convert to float64 first to avoid overflow
-    b = np.float64(b)
-    g = np.float64(g)
-    r = np.float64(r)
+    b = np.float64(b.get())
+    g = np.float64(g.get())
+    r = np.float64(r.get())
     
     # Avoid division by zero
     denominator = ((2 * g) + b) + r + EPS
