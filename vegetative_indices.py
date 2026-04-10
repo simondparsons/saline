@@ -61,10 +61,11 @@ def computeExGR(b, g, r):
 # Green leaf index (GLI)
 # =========================
 def computeGLI(b, g, r):
-    # Convert to float64 first to avoid overflow
-    b = np.float64(b)
-    g = np.float64(g)
-    r = np.float64(r)
+    # Convert to float64 first to avoid overflow.  Should not need
+    # this now that we are doing the conversion in the dispatcher.
+    #b = np.float64(b)
+    #g = np.float64(g)
+    #r = np.float64(r)
     
     # Avoid division by zero
     denominator = ((2 * g) + b) + r + EPS
@@ -219,11 +220,12 @@ def normalizeBands(img):
     g_n =  (g / sum_channels)
     r_n =  (r / sum_channels)
 
-    # Note, need to convert these back to uint8 when used.
+    # Note, need to convert these back to uint8 when used, as below.
     return b_n, g_n, r_n
 
 # The same, but returns a normalized image. This is what is called
-# from apply-indices.
+# from apply-indices. Converts back to uint8 so that the normalized
+# image is the same format as before normalization.
 def normalizeImage(img):
 
     b = img[:,:,0].astype(np.float64) # get blue channel
@@ -255,13 +257,14 @@ def normalizeImage(img):
 # This is what is invoked by the dispatcher below. Uses GPU/CuPy if
 # possible, else falls back to the legacy version (see below).
 #
-# Still needs to be tested on a GPU
+# This version is back to what was orignally suggested by Claude ---
+# error was the conversion to float64 in the index functions. With
+# this handled in the dispatcher we should be able to remove from all
+# index functions and have everything run both on GPU and not.
 def computeIndexGPU(img, indexFunc):
     if not GPU_AVAILABLE:
         return computeIndex(img, indexFunc)
 
-    print("Creating GPU friendly array")
-    
     img_gpu = cp.asarray(img)
 
     print("Splitting BGR planes")
@@ -270,28 +273,21 @@ def computeIndexGPU(img, indexFunc):
     g = img_gpu[:, :, 1]
     r = img_gpu[:, :, 2]
 
-    print("Creating rslts matrix")
+    print("Creating results matrix")
     
     result_gpu = cp.zeros(b.shape)
-    #
-    print("Calling GPU stuff")
-    result_gpu = indexFunc(b.get(), g.get(), r.get())
-    #newImg = indexFunc(b, g, r)
-
-    print("Result computed")
     
-    newImg =  cp.asnumpy(result_gpu)
-    # Will likely need to normalize and turn into uint8 when done
-    #return cp.asnumpy(result_gpu)
-    return cp.asnumpy(newImg)
+    # May need to normalize and turn into uint8.
+    return cp.asnumpy(result_gpu)
+    
 
 # CPU-only versions
 #
 # Original, pixel, by pixel. Works but slow
 def computeIndexOld(img, indexFunc):
-    b = img[:,:,0] # get blue channel
-    g = img[:,:,1] # get green channel
-    r = img[:,:,2] # get red channel
+    b = img[:,:,0].astype(np.float64) # get blue channel
+    g = img[:,:,1].astype(np.float64) # get green channel
+    r = img[:,:,2].astype(np.float64) # get red channel
 
     newImg = np.zeros(b.shape).astype(np.float64)
     
@@ -306,9 +302,10 @@ def computeIndexOld(img, indexFunc):
 
 # Using numpy vectorization 
 def computeIndex(img, indexFunc):
-    b = img[:,:,0] # get blue channel
-    g = img[:,:,1] # get green channel
-    r = img[:,:,2] # get red channel
+    # Convert to float64 so that we don't need to do it in indexFunc
+    b = img[:,:,0].astype(np.float64) # get blue channel
+    g = img[:,:,1].astype(np.float64) # get green channel
+    r = img[:,:,2].astype(np.float64) # get red channel
 
     # Vectorize the index function
     vectorizedFunc = np.vectorize(indexFunc)
@@ -452,5 +449,7 @@ def rgb_to_hsv(r, g, b):
     # where the values are used.
     #
     #return int(h), int(s), int(v)
-
+    #
+    # We are going to need to convert the ouput to float64 before
+    # returning.
     return h, s, v
