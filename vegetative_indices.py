@@ -80,7 +80,6 @@ def computeRGBVI(b, g, r):
 
     return (g**2 - (r * b)) / (g**2 + (r * b) + EPS)
 
-
 # =========================
 # Dark Green Colour Index (DGCI)
 # =========================
@@ -92,7 +91,6 @@ def computeDGCI(b, g, r):
     #s = np.float64(s)
     # Don't need v in the calculation
     return (((h - 60)/60) + (1 - s) + (1 - b)) / 3
-
 
 # =========================
 # Normalized Green Blue Difference Index (NGBDI)
@@ -218,10 +216,8 @@ def normalizeImage(img):
 
 # GPU version
 #
-# This version is back to what was orignally suggested by Claude ---
-# error was the conversion to float64 in the index functions. With
-# this handled in the dispatcher we should be able to remove from all
-# index functions and have everything run both on GPU and not.
+# The wrinkle with this is the need to explicitly convert to numpy
+# arrays where we need to use those in indexFunc and downstream.
 def computeIndexGPU(img, indexFunc):
     if not GPU_AVAILABLE:
         return computeIndex(img, indexFunc)
@@ -397,7 +393,10 @@ def summaryValues(img):
 
 def rgb_to_hsv(r, g, b):
     # OpenCV expects BGR and values in range [0,255]
-    bgr_pixel = np.uint8([[[b, g, r]]])
+    if GPU_AVAILABLE:
+        bgr_pixel = np.uint8([[[b.get(), g.get(), r.get()]]])
+    else:
+        bgr_pixel = np.uint8([[[b, g, r]]])
 
     # Convert BGR to HSV
     hsv_pixel = cv.cvtColor(bgr_pixel, cv.COLOR_BGR2HSV)
