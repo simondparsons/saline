@@ -222,23 +222,22 @@ def normalizeImage(img):
 def computeIndexGPU(img, indexFunc):
     if not GPU_AVAILABLE:
         return computeIndex(img, indexFunc)
+    #elif indexFunc == "DGCI":
+    #    return computeIndex(img, indexFunc)
+    else:
+        # Use CuPy to get the benefit of GPU
+        img_gpu = cp.asarray(img)
+        b = img_gpu[:, :, 0]
+        g = img_gpu[:, :, 1]
+        r = img_gpu[:, :, 2]
+        result_gpu = indexFunc(b, g, r)
 
-    if indexFunc == "DGCI":
-        return computeIndex(img, indexFunc)
-    
-    # Use CuPy to get the benefit of GPU
-    img_gpu = cp.asarray(img)
-    b = img_gpu[:, :, 0]
-    g = img_gpu[:, :, 1]
-    r = img_gpu[:, :, 2]
-    result_gpu = indexFunc(b, g, r)
-
-    # Scale and turn into unit8 so that the results look like a normal
-    # image(for example for use with Otsu thresholding)
-    newImg = cp.asnumpy(result_gpu)
-    imgScaled = cv.normalize(newImg, None, 0, 255, cv.NORM_MINMAX)
-    imgUint8 = imgScaled.astype(np.uint8)
-    return imgUint8    
+        # Scale and turn into unit8 so that the results look like a normal
+        # image(for example for use with Otsu thresholding)
+        newImg = cp.asnumpy(result_gpu)
+        imgScaled = cv.normalize(newImg, None, 0, 255, cv.NORM_MINMAX)
+        imgUint8 = imgScaled.astype(np.uint8)
+        return imgUint8    
 
 # CPU-only versions
 #
@@ -329,9 +328,10 @@ def computeIndexByName(img, index_name):
     if index_name not in INDEX_FUNCTIONS:
         raise ValueError(f"Unknown index '{index_name}'. "
                          f"Available indices: {list(INDEX_FUNCTIONS.keys())}")
-
-    #return computeIndex(img, INDEX_FUNCTIONS[index_name])
-    return computeIndexGPU(img, INDEX_FUNCTIONS[index_name])
+    elif index_name == "DGCI":
+        return computeIndex(img, INDEX_FUNCTIONS[index_name])
+    else:
+        return computeIndexGPU(img, INDEX_FUNCTIONS[index_name])
 
 def computeMultipleIndices(img, index_names):
     """
