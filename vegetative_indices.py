@@ -320,16 +320,16 @@ def computeIndexByName(img, index_name):
     -------
     ndarray
         Computed index image
-
-    Given the nature of the computation, a GPU should speed things up
-    a lot, so we include code to use a GPU is one is available.
     """
-    print(index_name)
+    # Given the nature of the computation, a GPU should speed things
+    # up a lot, so we include code to use a GPU if one is
+    # available. However, right now I can't get DGCI (which needs a
+    # conversion to HSV) to work with the GPU, so we hanle that
+    # separately.
     if index_name not in INDEX_FUNCTIONS:
         raise ValueError(f"Unknown index '{index_name}'. "
                          f"Available indices: {list(INDEX_FUNCTIONS.keys())}")
     elif index_name == "DGCI":
-        print("Computing DGCI")
         return computeIndex(img, INDEX_FUNCTIONS[index_name])
     else:
         return computeIndexGPU(img, INDEX_FUNCTIONS[index_name])
@@ -349,7 +349,14 @@ def computeMultipleIndices(img, index_names):
 # Thresholding
 # =========================
 
-# Apply a threshold to a single channel image
+# Apply a threshold to a single channel image.
+#
+# Make it faster using:
+#
+# result = np.where(arr > 20, 1, 0)
+# and
+# vals_greater_10 = (arr > 10).sum()
+
 def applyThreshold(img, thresh):
     newImg = np.zeros(img.shape)
     pixelCount = 0
@@ -397,7 +404,8 @@ def summaryValues(img):
 # =========================
 
 # This does not currently allow for GPU usage, preventing its use in
-# calculation DGCI on a GPU.
+# calculating DGCI on a GPU. The OpenCV call reports: "Bad number of
+# channels"
 def rgb_to_hsv(r, g, b):
     '''
     if GPU_AVAILABLE:
