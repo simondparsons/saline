@@ -394,20 +394,26 @@ def summaryValues(img):
 def rgb_to_hsv(r, g, b):
     # OpenCV expects BGR and values in range [0,255]
     if GPU_AVAILABLE:
-        bgr_pixel = np.uint8([[[b.get(), g.get(), r.get()]]])
+        print("Convert to uint8")
+        r = np.uint8(r.get()) 
+        g = np.uint8(b.get())
+        b = np.uint8(g.get())
+        bgr_pixel = np.stack([b, g, r], axis=2)
+        print("Calling open CV")
+        hsv_pixel = cv.cvtColor(bgr_pixel, cv.COLOR_BGR2HSV)
+        h, s, v = hsv_pixel[0][0]
+        print("Convert back to float64")
+        h = np.float64(h.get()) 
+        s = np.float64(s.get())
+        v = np.float64(v.get())
     else:
         bgr_pixel = np.uint8([[[b, g, r]]])
+        hsv_pixel = cv.cvtColor(bgr_pixel, cv.COLOR_BGR2HSV)
+        h, s, v = hsv_pixel[0][0]
+        # Now convert back into float64 so we don't need to do that in
+        # the index function.
+        h = np.float64(h) 
+        s = np.float64(s)
+        v = np.float64(s)
 
-    # Convert BGR to HSV
-    hsv_pixel = cv.cvtColor(bgr_pixel, cv.COLOR_BGR2HSV)
-
-    h, s, v = hsv_pixel[0][0]
-    # To be correct, we should convert back to ints before returning,
-    # but that causes problems with the computation in computeDGCI
-    # where the values are used.
-    #
-    #return int(h), int(s), int(v)
-    #
-    # We are going to need to convert the ouput to float64 before
-    # returning.
     return h, s, v
