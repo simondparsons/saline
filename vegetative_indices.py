@@ -84,12 +84,12 @@ def computeRGBVI(b, g, r):
 # Dark Green Colour Index (DGCI)
 # =========================
 def computeDGCI(b, g, r):
-    # DGCI is defined in Rossi et al. in terms of HSV
-    h, s, v = rgb_to_hsv(r, g, b)
+    # DGCI is defined in Rossi et al. in terms of HSV. We don't need
+    # the v value
+    h, s, _ = rgb_to_hsv(r, g, b)
     
     #h = np.float64(h) 
     #s = np.float64(s)
-    # Don't need v in the calculation
     return (((h - 60)/60) + (1 - s) + (1 - b)) / 3
 
 # =========================
@@ -217,11 +217,15 @@ def normalizeImage(img):
 # GPU version
 #
 # The wrinkle with this is the need to explicitly convert to numpy
-# arrays where we need to use those in indexFunc and downstream.
+# arrays where we need to use those in indexFunc and downstream. This
+# currently prevents us using the GPU to computeDGCI
 def computeIndexGPU(img, indexFunc):
     if not GPU_AVAILABLE:
         return computeIndex(img, indexFunc)
 
+    if indexFunc == "DGCI":
+        return computeIndex(img, indexFunc)
+    
     # Use CuPy to get the benefit of GPU
     img_gpu = cp.asarray(img)
     b = img_gpu[:, :, 0]
@@ -391,8 +395,10 @@ def summaryValues(img):
 # RGB to HSV using OpenCV
 # =========================
 
+# This does not currently allow for GPU usage, preventing its use in
+# calculation DGCI on a GPU.
 def rgb_to_hsv(r, g, b):
-    # OpenCV expects BGR and values in range [0,255]
+    '''
     if GPU_AVAILABLE:
         print("Convert to uint8")
         r = cp.asnumpy(r).astype(np.float64) 
@@ -406,14 +412,15 @@ def rgb_to_hsv(r, g, b):
         h = cp.float64(h.get()) 
         s = cp.float64(s.get())
         v = cp.float64(v.get())
-    else:
-        bgr_pixel = np.uint8([[[b, g, r]]])
-        hsv_pixel = cv.cvtColor(bgr_pixel, cv.COLOR_BGR2HSV)
-        h, s, v = hsv_pixel[0][0]
-        # Now convert back into float64 so we don't need to do that in
-        # the index function.
-        h = np.float64(h) 
-        s = np.float64(s)
-        v = np.float64(s)
+    '''
+    # OpenCV expects BGR and values in range [0,255]
+    bgr_pixel = np.uint8([[[b, g, r]]])
+    hsv_pixel = cv.cvtColor(bgr_pixel, cv.COLOR_BGR2HSV)
+    h, s, v = hsv_pixel[0][0]
+    # Now convert back into float64 so we don't need to do that in
+    # the index function.
+    h = np.float64(h) 
+    s = np.float64(s)
+    v = np.float64(s)
 
     return h, s, v
