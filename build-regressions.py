@@ -25,6 +25,8 @@ from sklearn.svm import SVR, LinearSVR
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from datetime import datetime
+# Use XGBoost to get categorical variable support
+from xgboost import XGBRegressor
 
 
 def read_csv_files(file_paths):
@@ -139,14 +141,20 @@ def get_regression_models():
         'Ridge': Ridge(alpha=1.0),
         'Lasso': Lasso(alpha=1.0),
         'ElasticNet': ElasticNet(alpha=1.0, l1_ratio=0.5),
-        # Added Linear SVR for comparison with the other linear models
+        # Added Linear SVR for comparison with the other linear
+        # models. Parameters are the defaults from the scikit page.
         'Linear SVR': LinearSVR(C=1.0, epsilon=0, loss='squared_epsilon_insensitive'),
-        'DecisionTree': DecisionTreeRegressor(random_state=42, max_depth=5),
-        # Both random forest and GBR have a lot of estimators for the
-        # number of datapoints, so we won't use these.
-        #'RandomForest': RandomForestRegressor(n_estimators=100, random_state=42, max_depth=5),
-        #'GradientBoosting': GradientBoostingRegressor(n_estimators=100, random_state=42, max_depth=3),
-        'SVR': SVR(kernel='rbf', C=1.0, epsilon=0.1)
+        #'DecisionTree': DecisionTreeRegressor(random_state=42, max_depth=5),
+        'DecisionTree': DecisionTreeRegressor(random_state=42, max_depth=3),
+        # Force random forest and GBR to use less estimators than datapoints.
+        #'RandomForest': RandomForestRegressor(n_estimators=5, random_state=42, max_depth=5),
+        'GradientBoosting': GradientBoostingRegressor(n_estimators=5, random_state=42, max_depth=3),
+        # USe different SVR kernels
+        'SVR Radial': SVR(kernel='rbf', C=1.0, epsilon=0.1),
+        'SVR Poly': SVR(kernel='poly', C=1.0, epsilon=0.1, degree=2),
+        'SVR Sigmoid': SVR(kernel='sigmoid', C=1.0, epsilon=0.1),
+        # Suspiciously high fit, suspect overfitting for single index
+        #'XGB': XGBRegressor(enable_categorical=True, max_depth=3, tree_method='hist')
     }
     return models
 
@@ -478,7 +486,7 @@ def main():
             'df1_cols': list(df1.columns)[3],  
             'df2_cols': []
         },
-        {
+        { # VARI does not seem to be very helpful. Breaks SVR Poly
             'name': 'VARI',
             'df1_cols': list(df1.columns)[4],  
             'df2_cols': []
