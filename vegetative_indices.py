@@ -257,6 +257,9 @@ def normalizeImage(img):
 # This is what is invoked by the dispatcher below. Uses GPU/CuPy if
 # possible, else falls back to the legacy version (see below).
 #
+
+# GPU version
+#
 # This version is back to what was orignally suggested by Claude ---
 # error was the conversion to float64 in the index functions. With
 # this handled in the dispatcher we should be able to remove from all
@@ -277,10 +280,13 @@ def computeIndexGPU(img, indexFunc):
     
     #result_gpu = cp.zeros(b.shape)
     result_gpu = indexFunc(b, g, r)
-     
-    # May need to normalize and turn into uint8.
-    return cp.asnumpy(result_gpu)
-    
+
+    # Scale andturn into unit8 so that the results look like a normal
+    # image(for example for use with Otsu thresholding)
+    newImg = cp.asnumpy(result_gpu)
+    imgScaled = cv.normalize(newImg, None, 0, 255, cv.NORM_MINMAX)
+    imgUint8 = imgScaled.astype(np.uint8)
+    return imgUint8    
 
 # CPU-only versions
 #
@@ -406,7 +412,7 @@ def applyThreshold(img, thresh):
 # Compute the Otsu theshold for an image. Needs a standard OpenCV
 # image (i.e. uint8)
 def calculateOtsuThreshold(img):
-
+    
     # Convert to grayscale if image is color
     if len(img.shape) == 3:
         gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
