@@ -395,9 +395,9 @@ def rgb_to_hsv(r, g, b):
     # OpenCV expects BGR and values in range [0,255]
     if GPU_AVAILABLE:
         print("Convert to uint8")
-        r = np.uint8(r.get()) 
-        g = np.uint8(b.get())
-        b = np.uint8(g.get())
+        r = np.uint8(r) 
+        g = np.uint8(b)
+        b = np.uint8(g)
         bgr_pixel = np.stack([b, g, r], axis=2)
         print("Calling open CV")
         hsv_pixel = cv.cvtColor(bgr_pixel, cv.COLOR_BGR2HSV)
