@@ -7,7 +7,7 @@
 # 26-03-06
 
 # Vegetative indices as a library. This started with my own work, with
-# Otsu from Claude Sonnet 4.5 (which basicaly copied it from the
+# Otsu from Claude Sonnet 4.5 (which basically copied it from the
 # OpenCV web page), but then Chat GPT wrote a bunch more of the
 # functions for me.
 
@@ -275,8 +275,9 @@ def computeIndexGPU(img, indexFunc):
 
     print("Creating results matrix")
     
-    result_gpu = cp.zeros(b.shape)
-    
+    #result_gpu = cp.zeros(b.shape)
+    result_gpu = indexFunc(b, g, r)
+     
     # May need to normalize and turn into uint8.
     return cp.asnumpy(result_gpu)
     
