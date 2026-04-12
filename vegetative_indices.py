@@ -39,10 +39,6 @@ EPS = 1e-10
 # Excess green (ExG)
 # =========================
 def computeExG(b, g, r):
-    # Convert to float64 first to avoid overflow
-    b = np.float64(b)
-    g = np.float64(g)
-    r = np.float64(r)
 
     return (((2 * g) - b) - r)
 
@@ -50,10 +46,6 @@ def computeExG(b, g, r):
 # Excess green minus excess red (ExGR)
 # =========================
 def computeExGR(b, g, r):
-    # Convert to float64 first to avoid overflow
-    b = np.float64(b)
-    g = np.float64(g)
-    r = np.float64(r)
     
     return (((3 * g) - (2.4 * r)) - b)
 
@@ -61,12 +53,6 @@ def computeExGR(b, g, r):
 # Green leaf index (GLI)
 # =========================
 def computeGLI(b, g, r):
-    # Convert to float64 first to avoid overflow.  Should not need
-    # this now that we are doing the conversion in the dispatcher.
-    #b = np.float64(b)
-    #g = np.float64(g)
-    #r = np.float64(r)
-    
     # Avoid division by zero
     denominator = ((2 * g) + b) + r + EPS
     
@@ -75,12 +61,7 @@ def computeGLI(b, g, r):
 # =========================
 #  Visible atmospherically resistant index (VARI)
 # =========================
-def computeVARI(b, g, r):
-    # Convert to float64 first to avoid overflow
-    b = np.float64(b)
-    g = np.float64(g)
-    r = np.float64(r)
-    
+def computeVARI(b, g, r):    
     denominator = (g + r) - b + EPS
 
     return ((g - r) / denominator)
@@ -96,9 +77,6 @@ def computeVARI(b, g, r):
 # Red Green Blue Vegetation Index (RGBVI)
 # =========================
 def computeRGBVI(b, g, r):
-    b = np.float64(b)
-    g = np.float64(g)
-    r = np.float64(r)
 
     return (g**2 - (r * b)) / (g**2 + (r * b) + EPS)
 
@@ -110,8 +88,8 @@ def computeDGCI(b, g, r):
     # DGCI is defined in Rossi et al. in terms of HSV
     h, s, v = rgb_to_hsv(r, g, b)
     
-    h = np.float64(h) 
-    s = np.float64(s)
+    #h = np.float64(h) 
+    #s = np.float64(s)
     # Don't need v in the calculation
     return (((h - 60)/60) + (1 - s) + (1 - b)) / 3
 
@@ -120,8 +98,6 @@ def computeDGCI(b, g, r):
 # Normalized Green Blue Difference Index (NGBDI)
 # =========================
 def computeNGBDI(b, g, r):
-    b = np.float64(b)
-    g = np.float64(g)
 
     return (g - b) / (g + b + EPS)
 
@@ -130,9 +106,6 @@ def computeNGBDI(b, g, r):
 # literally just 2*g - b - r
 # =========================
 def computeBGR(b, g, r):
-    b = np.float64(b)
-    g = np.float64(g)
-    r = np.float64(r)
 
     return (2 * g) - b - r
 
@@ -140,8 +113,6 @@ def computeBGR(b, g, r):
 # Green Red Vegetation Index (GRVI)
 # =========================
 def computeGRVI(b, g, r):
-    g = np.float64(g)
-    r = np.float64(r)
 
     return (g - r) / (g + r + EPS)
 
@@ -149,9 +120,6 @@ def computeGRVI(b, g, r):
 # Normalized Redness Intensity (NRI)
 # =========================
 def computeNRI(b, g, r):
-    b = np.float64(b)
-    g = np.float64(g)
-    r = np.float64(r)
 
     return r / (r + g + b + EPS)
 
@@ -159,9 +127,6 @@ def computeNRI(b, g, r):
 # Normalized Greenness Intensity (NGI)
 # =========================
 def computeNGI(b, g, r):
-    b = np.float64(b)
-    g = np.float64(g)
-    r = np.float64(r)
 
     return g / (r + g + b + EPS)
 
@@ -169,9 +134,6 @@ def computeNGI(b, g, r):
 # Normalized Blueness Intensity (NBI)
 # =========================
 def computeNBI(b, g, r):
-    b = np.float64(b)
-    g = np.float64(g)
-    r = np.float64(r)
 
     return b / (r + g + b + EPS)
 
@@ -185,8 +147,6 @@ def computeNBI(b, g, r):
 # place of G.
 #
 def computeSAVI(b, g, r, L=0.5):
-    g = np.float64(g)
-    r = np.float64(r)
 
     return ((g - r) / (g + r + L + EPS)) * (1 + L)
 
@@ -194,8 +154,6 @@ def computeSAVI(b, g, r, L=0.5):
 # Green Minus Red (GMR)
 # =========================
 def computeGMR(b, g, r):
-    g = np.float64(g)
-    r = np.float64(r)
 
     return g - r
 
@@ -268,20 +226,14 @@ def computeIndexGPU(img, indexFunc):
     if not GPU_AVAILABLE:
         return computeIndex(img, indexFunc)
 
+    # Use CuPy to get the benefit of GPU
     img_gpu = cp.asarray(img)
-
-    print("Splitting BGR planes")
-    
     b = img_gpu[:, :, 0]
     g = img_gpu[:, :, 1]
     r = img_gpu[:, :, 2]
-
-    print("Creating results matrix")
-    
-    #result_gpu = cp.zeros(b.shape)
     result_gpu = indexFunc(b, g, r)
 
-    # Scale andturn into unit8 so that the results look like a normal
+    # Scale and turn into unit8 so that the results look like a normal
     # image(for example for use with Otsu thresholding)
     newImg = cp.asnumpy(result_gpu)
     imgScaled = cv.normalize(newImg, None, 0, 255, cv.NORM_MINMAX)
