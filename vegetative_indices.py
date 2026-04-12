@@ -324,11 +324,12 @@ def computeIndexByName(img, index_name):
     Given the nature of the computation, a GPU should speed things up
     a lot, so we include code to use a GPU is one is available.
     """
-    
+    print(index_name)
     if index_name not in INDEX_FUNCTIONS:
         raise ValueError(f"Unknown index '{index_name}'. "
                          f"Available indices: {list(INDEX_FUNCTIONS.keys())}")
     elif index_name == "DGCI":
+        print("Computing DGCI")
         return computeIndex(img, INDEX_FUNCTIONS[index_name])
     else:
         return computeIndexGPU(img, INDEX_FUNCTIONS[index_name])
