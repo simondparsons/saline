@@ -350,14 +350,15 @@ def computeMultipleIndices(img, index_names):
 # =========================
 
 # Apply a threshold to a single channel image.
-#
-# Make it faster using:
-#
-# result = np.where(arr > 20, 1, 0)
-# and
-# vals_greater_10 = (arr > 10).sum()
-
 def applyThreshold(img, thresh):
+    # Produce a binary mask from the image
+    newImg = np.where(img >= thresh, 255, 0)
+    pixelCount = (img >= thresh).sum()
+    
+    return newImg, pixelCount
+
+# Original, pixel by pixel version
+def applyThresholdOld(img, thresh):
     newImg = np.zeros(img.shape)
     pixelCount = 0
     for i in range(img.shape[0]):
@@ -366,7 +367,7 @@ def applyThreshold(img, thresh):
             if img[i][j] >= thresh:
                 newImg[i][j] = 255
                 pixelCount = pixelCount + 1
-                
+
     return newImg, pixelCount
 
 # Compute the Otsu theshold for an image. Needs a standard OpenCV
