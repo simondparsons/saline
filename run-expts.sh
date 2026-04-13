@@ -58,3 +58,14 @@ python apply-indices.py ~/projects/farming/salt/images/2024_09_09/ 2024_09_09-un
 # Threshold 10
 #python apply-indices.py ~/projects/farming/salt/images/2024_06_03/ 2024_06_03-normalised-threshold-010.csv -i ExG ExGR GLI VARI RGBVI DGCI NGBDI BGR GRVI NRI NGI NBI SAVI GMR -t 10 10 10 10 10 10 10 10 10 10 10 10 10 10 -n true
 
+# Threshold 20
+#python apply-indices.py ~/projects/farming/salt/images/2024_06_03/ 2024_06_03-normalised-threshold-020.csv -i ExG ExGR GLI VARI RGBVI DGCI NGBDI BGR GRVI NRI NGI NBI SAVI GMR -t 20 20 20 20 20 20 20 20 20 20 20 20 20 20 -n true
+
+# Threshold 30
+#python apply-indices.py ~/projects/farming/salt/images/2024_06_03/ 2024_06_03-normalised-threshold-030.csv -i ExG ExGR GLI VARI RGBVI DGCI NGBDI BGR GRVI NRI NGI NBI SAVI GMR -t 30 30 30 30 30 30 30 30 30 30 30 30 30 30 -n true
+
+# Threshold 40
+#python apply-indices.py ~/projects/farming/salt/images/2024_06_03/ 2024_06_03-normalised-threshold-040.csv -i ExG ExGR GLI VARI RGBVI DGCI NGBDI BGR GRVI NRI NGI NBI SAVI GMR -t 40 40 40 40 40 40 40 40 40 40 40 40 40 40 -n true
+
+# Threshold 50
+python apply-indices.py ~/projects/farming/salt/images/2024_06_03/ 2024_06_03-normalised-threshold-050.csv -i ExG ExGR GLI VARI RGBVI DGCI NGBDI BGR GRVI NRI NGI NBI SAVI GMR -t 50 50 50 50 50 50 50 50 50 50 50 50 50 50 -n true
