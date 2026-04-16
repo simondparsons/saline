@@ -144,11 +144,12 @@ def get_regression_models():
         # Added Linear SVR for comparison with the other linear
         # models. Parameters are the defaults from the scikit page.
         'Linear SVR': LinearSVR(C=1.0, epsilon=0, loss='squared_epsilon_insensitive'),
+        # Reduce the alowable depth of decision trees
         #'DecisionTree': DecisionTreeRegressor(random_state=42, max_depth=5),
         'DecisionTree': DecisionTreeRegressor(random_state=42, max_depth=3),
         # Force random forest and GBR to use less estimators than datapoints.
-        #'RandomForest': RandomForestRegressor(n_estimators=5, random_state=42, max_depth=5),
-        'GradientBoosting': GradientBoostingRegressor(n_estimators=5, random_state=42, max_depth=3),
+        'RandomForest': RandomForestRegressor(n_estimators=3, random_state=42, max_depth=3),
+        'GradientBoosting': GradientBoostingRegressor(n_estimators=3, random_state=42, max_depth=3),
         # USe different SVR kernels
         'SVR Radial': SVR(kernel='rbf', C=1.0, epsilon=0.1),
         'SVR Poly': SVR(kernel='poly', C=1.0, epsilon=0.1, degree=2),
