@@ -109,15 +109,15 @@ def build_feature_target_vectors(df1, df2, feature_sets, target_df, target_col):
             features_list.append(features_df2)
             feature_names.extend(df2_cols)
         
-        # Combine features horizontally
+        # Combine features horizontally allowing for a single feature
+        # (which otherwise defeats sklearn
         if features_list:
-            X = np.hstack(features_list) if len(features_list) > 1 else features_list[0]
-            # For now only use one feature from
-            # the index file, so reshape. Make this conditional on the shape
-            # to make it more general.
-
-            X = X.reshape(-1, 1)
-    
+            if len(features_list) > 1:
+                X = np.hstack(features_list)
+            else:
+                X = features_list[0]
+                X = X.reshape(-1, 1)
+                
         else:
             raise ValueError(f"Feature set '{name}' has no columns specified")
         
