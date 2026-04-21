@@ -24,11 +24,11 @@
 # Threshold otsu
 #python apply-indices.py ~/projects/farming/salt/images/2024_06_03 ~/projects/farming/salt/results/2024_06_03-normalized-otsu.csv --indexes ExG ExGR GLI VARI RGBVI DGCI NGBDI BGR GRVI NRI NGI NBI SAVI GMR  --n true --thresholds otsu otsu otsu otsu otsu otsu otsu otsu otsu otsu otsu otsu otsu otsu
 
-python apply-indices.py ~/projects/farming/salt/images/2024_07_22 2024_07_22-normalized-otsu.csv --indexes ExG ExGR GLI VARI RGBVI DGCI NGBDI BGR GRVI NRI NGI NBI SAVI GMR  --n true --thresholds otsu otsu otsu otsu otsu otsu otsu otsu otsu otsu otsu otsu otsu otsu
+#python apply-indices.py ~/projects/farming/salt/images/2024_07_22 2024_07_22-normalized-otsu.csv --indexes ExG ExGR GLI VARI RGBVI DGCI NGBDI BGR GRVI NRI NGI NBI SAVI GMR  --n true --thresholds otsu otsu otsu otsu otsu otsu otsu otsu otsu otsu otsu otsu otsu otsu
 
-python apply-indices.py ~/projects/farming/salt/images/2024_09_09 2024_09_09-normalized-otsu.csv --indexes ExG ExGR GLI VARI RGBVI DGCI NGBDI BGR GRVI NRI NGI NBI SAVI GMR  --n true --thresholds otsu otsu otsu otsu otsu otsu otsu otsu otsu otsu otsu otsu otsu otsu
+#python apply-indices.py ~/projects/farming/salt/images/2024_09_09 2024_09_09-normalized-otsu.csv --indexes ExG ExGR GLI VARI RGBVI DGCI NGBDI BGR GRVI NRI NGI NBI SAVI GMR  --n true --thresholds otsu otsu otsu otsu otsu otsu otsu otsu otsu otsu otsu otsu otsu otsu
 
-python apply-indices.py ~/projects/farming/salt/images/2024_06_03 2024_06_03-unnormalized-otsu.csv --indexes ExG ExGR GLI VARI RGBVI DGCI NGBDI BGR GRVI NRI NGI NBI SAVI GMR  --n false --thresholds otsu otsu otsu otsu otsu otsu otsu otsu otsu otsu otsu otsu otsu otsu
+#python apply-indices.py ~/projects/farming/salt/images/2024_06_03 2024_06_03-unnormalized-otsu.csv --indexes ExG ExGR GLI VARI RGBVI DGCI NGBDI BGR GRVI NRI NGI NBI SAVI GMR  --n false --thresholds otsu otsu otsu otsu otsu otsu otsu otsu otsu otsu otsu otsu otsu otsu
 
 # Only try unnormalised for the first set of images to begin with
 #python apply-indices.py ~/projects/farming/salt/images/2024_07_22 2024_07_22-unnormalized-otsu.csv --indexes ExG ExGR GLI VARI RGBVI DGCI NGBDI BGR GRVI NRI NGI NBI SAVI GMR  --n false --thresholds otsu otsu otsu otsu otsu otsu otsu otsu otsu otsu otsu otsu otsu otsu
@@ -38,11 +38,11 @@ python apply-indices.py ~/projects/farming/salt/images/2024_06_03 2024_06_03-unn
 # Threshold median
 #python apply-indices.py ~/projects/farming/salt/images/2024_06_03/ 2024_06_03-normalised-median.csv -i ExG ExGR GLI VARI RGBVI DGCI NGBDI BGR GRVI NRI NGI NBI SAVI GMR -t median median median median median median median median median median median median median median -n true
 
-python apply-indices.py ~/projects/farming/salt/images/2024_07_22/ 2024_07_22-normalised-median.csv -i ExG ExGR GLI VARI RGBVI DGCI NGBDI BGR GRVI NRI NGI NBI SAVI GMR -t median median median median median median median median median median median median median median -n true
+#python apply-indices.py ~/projects/farming/salt/images/2024_07_22/ 2024_07_22-normalised-median.csv -i ExG ExGR GLI VARI RGBVI DGCI NGBDI BGR GRVI NRI NGI NBI SAVI GMR -t median median median median median median median median median median median median median median -n true
 
-python apply-indices.py ~/projects/farming/salt/images/2024_09_09/ 2024_09_09-normalised-median.csv -i ExG ExGR GLI VARI RGBVI DGCI NGBDI BGR GRVI NRI NGI NBI SAVI GMR -t median median median median median median median median median median median median median median -n true
+#python apply-indices.py ~/projects/farming/salt/images/2024_09_09/ 2024_09_09-normalised-median.csv -i ExG ExGR GLI VARI RGBVI DGCI NGBDI BGR GRVI NRI NGI NBI SAVI GMR -t median median median median median median median median median median median median median median -n true
 
-python apply-indices.py ~/projects/farming/salt/images/2024_06_03/ 2024_06_03-unnormalised-median.csv -i ExG ExGR GLI VARI RGBVI DGCI NGBDI BGR GRVI NRI NGI NBI SAVI GMR -t median median median median median median median median median median median median median median -n false
+#python apply-indices.py ~/projects/farming/salt/images/2024_06_03/ 2024_06_03-unnormalised-median.csv -i ExG ExGR GLI VARI RGBVI DGCI NGBDI BGR GRVI NRI NGI NBI SAVI GMR -t median median median median median median median median median median median median median median -n false
 
 # Only try unnormalised for the first set of images to begin with
 #python apply-indices.py ~/projects/farming/salt/images/2024_07_22/ 2024_07_22-unnormalised-median.csv -i ExG ExGR GLI VARI RGBVI DGCI NGBDI BGR GRVI NRI NGI NBI SAVI GMR -t median median median median median median median median median median median median median median -n false
@@ -60,11 +60,11 @@ python apply-indices.py ~/projects/farming/salt/images/2024_06_03/ 2024_06_03-un
 # Threshold 10
 #python apply-indices.py ~/projects/farming/salt/images/2024_06_03/ 2024_06_03-normalised-threshold-010.csv -i ExG ExGR GLI VARI RGBVI DGCI NGBDI BGR GRVI NRI NGI NBI SAVI GMR -t 10 10 10 10 10 10 10 10 10 10 10 10 10 10 -n true
 
-python apply-indices.py ~/projects/farming/salt/images/2024_07_22/ 2024_07_22-normalised-threshold-010.csv -i ExG ExGR GLI VARI RGBVI DGCI NGBDI BGR GRVI NRI NGI NBI SAVI GMR -t 10 10 10 10 10 10 10 10 10 10 10 10 10 10 -n true
+#python apply-indices.py ~/projects/farming/salt/images/2024_07_22/ 2024_07_22-normalised-threshold-010.csv -i ExG ExGR GLI VARI RGBVI DGCI NGBDI BGR GRVI NRI NGI NBI SAVI GMR -t 10 10 10 10 10 10 10 10 10 10 10 10 10 10 -n true
 
-python apply-indices.py ~/projects/farming/salt/images/2024_09_09/ 2024_09_09-normalised-threshold-010.csv -i ExG ExGR GLI VARI RGBVI DGCI NGBDI BGR GRVI NRI NGI NBI SAVI GMR -t 10 10 10 10 10 10 10 10 10 10 10 10 10 10 -n true
+#python apply-indices.py ~/projects/farming/salt/images/2024_09_09/ 2024_09_09-normalised-threshold-010.csv -i ExG ExGR GLI VARI RGBVI DGCI NGBDI BGR GRVI NRI NGI NBI SAVI GMR -t 10 10 10 10 10 10 10 10 10 10 10 10 10 10 -n true
 
-python apply-indices.py ~/projects/farming/salt/images/2024_06_03/ 2024_06_03-unnormalised-theshold-010.csv -i ExG ExGR GLI VARI RGBVI DGCI NGBDI BGR GRVI NRI NGI NBI SAVI GMR -t 10 10 10 10 10 10 10 10 10 10 10 10 10 10 -n false
+#python apply-indices.py ~/projects/farming/salt/images/2024_06_03/ 2024_06_03-unnormalised-theshold-010.csv -i ExG ExGR GLI VARI RGBVI DGCI NGBDI BGR GRVI NRI NGI NBI SAVI GMR -t 10 10 10 10 10 10 10 10 10 10 10 10 10 10 -n false
 
 # Only try unnormalised for the first set of images to begin with
 #python apply-indices.py ~/projects/farming/salt/images/2024_07_22/ 2024_07_22-unnormalised-median.csv -i ExG ExGR GLI VARI RGBVI DGCI NGBDI BGR GRVI NRI NGI NBI SAVI GMR -t median median median median median median median median median median median median median median -n false
