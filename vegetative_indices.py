@@ -83,10 +83,27 @@ def computeRGBVI(b, g, r):
 # =========================
 # Dark Green Colour Index (DGCI)
 # =========================
+#
+# Because of the call to rgb_to_hsv(), this is the one function that
+# can't be run on a GPU, an it runs massively slower on a GPU as a
+# result, ~30 seconds compared to under a second per image.
+#
+# In order to calculate this index on a GPU, we have two versions.
 def computeDGCI(b, g, r):
     # DGCI is defined in Rossi et al. in terms of HSV. We don't need
     # the v value
     h, s, _ = rgb_to_hsv(r, g, b)
+    
+    #h = np.float64(h) 
+    #s = np.float64(s)
+    return (((h - 60)/60) + (1 - s) + (1 - b)) / 3
+
+# This version accepts just the three parameters it needs and expects
+# the RGB to HSV conversion to be done elsewhere.
+def computeDGCI_GPU(b, h, s):
+    # DGCI is defined in Rossi et al. in terms of HSV. We don't need
+    # the v value
+    # h, s, _ = rgb_to_hsv(r, g, b)
     
     #h = np.float64(h) 
     #s = np.float64(s)
@@ -324,13 +341,19 @@ def computeIndexByName(img, index_name):
     # Given the nature of the computation, a GPU should speed things
     # up a lot, so we include code to use a GPU if one is
     # available. However, right now I can't get DGCI (which needs a
-    # conversion to HSV) to work with the GPU, so we hanle that
+    # conversion to HSV) to work with the GPU, so we handle that
     # separately.
     if index_name not in INDEX_FUNCTIONS:
         raise ValueError(f"Unknown index '{index_name}'. "
                          f"Available indices: {list(INDEX_FUNCTIONS.keys())}")
+    # This is an ugly mix of what is done here for other indexes and
+    # what is done in computeIndexGPU. But the best I can manage for now.
     elif index_name == "DGCI":
-        return computeIndex(img, INDEX_FUNCTIONS[index_name])
+        if GPU_AVAILABLE:
+            hs_img = bgr_to_hsv(img)
+            return computeIndexGPU(hs_img, computeDGCI_GPU)
+        else:
+            return computeIndex(img, INDEX_FUNCTIONS[index_name])
     else:
         return computeIndexGPU(img, INDEX_FUNCTIONS[index_name])
 
@@ -408,21 +431,6 @@ def summaryValues(img):
 # calculating DGCI on a GPU. The OpenCV call reports: "Bad number of
 # channels"
 def rgb_to_hsv(r, g, b):
-    '''
-    if GPU_AVAILABLE:
-        print("Convert to uint8")
-        r = cp.asnumpy(r).astype(np.float64) 
-        g = cp.asnumpy(b).astype(np.float64)
-        b = cp.asnumpy(g).astype(np.float64)
-        bgr_pixel = np.uint8([[[b, g, r]]])
-        print("Calling open CV")
-        hsv_pixel = cv.cvtColor(bgr_pixel, cv.COLOR_BGR2HSV)
-        h, s, v = hsv_pixel[0][0]
-        print("Convert back to float64")
-        h = cp.float64(h.get()) 
-        s = cp.float64(s.get())
-        v = cp.float64(v.get())
-    '''
     # OpenCV expects BGR and values in range [0,255]
     bgr_pixel = np.uint8([[[b, g, r]]])
     hsv_pixel = cv.cvtColor(bgr_pixel, cv.COLOR_BGR2HSV)
@@ -434,3 +442,66 @@ def rgb_to_hsv(r, g, b):
     v = np.float64(s)
 
     return h, s, v
+
+# =========================
+# RGB to HSV directly
+# =========================
+
+def bgr_to_hsv(img):
+    """
+    Convert a BGR image to an HSV image using CuPy.
+
+    Args:
+        image: BGR image as a CuPy array of shape (H, W, 3).
+               Accepts uint8 (0–255) or float32 (0–1).
+
+    Returns:
+        hsv: HSV image as a CuPy array of shape (H, W, 3), float32.
+             - H: Hue        (0–360)
+             - S: Saturation (0–1)
+             - V: Value      (0–1)
+    """
+    image = cp.asarray(img)
+    image = image.astype(cp.float32)
+
+    # Normalise uint8 input to 0–1
+    if image.max() > 1.0:
+        image = image / 255.0
+
+    # Unpack BGR channels
+    b = image[:, :, 0]
+    g = image[:, :, 1]
+    r = image[:, :, 2]
+
+    cmax = cp.maximum(cp.maximum(r, g), b)  # Value
+    cmin = cp.minimum(cp.minimum(r, g), b)
+    delta = cmax - cmin
+
+    # --- Value ---
+    v = cmax
+
+    # --- Saturation ---
+    s = cp.where(cmax != 0, delta / cmax, cp.zeros_like(cmax))
+
+    # --- Hue ---
+    h = cp.zeros_like(cmax)
+
+    # Hue when cmax == r
+    mask_r = (cmax == r) & (delta != 0)
+    h = cp.where(mask_r, (g - b) / delta % 6, h)
+
+    # Hue when cmax == g
+    mask_g = (cmax == g) & (delta != 0)
+    h = cp.where(mask_g, (b - r) / delta + 2, h)
+
+    # Hue when cmax == b
+    mask_b = (cmax == b) & (delta != 0)
+    h = cp.where(mask_b, (r - g) / delta + 4, h)
+
+    h = h * 60  # Convert to degrees
+
+    # Stack into (H, W, 3) HSV image
+    hsv = cp.stack([h, s, v], axis=-1)
+
+    return hsv
+
