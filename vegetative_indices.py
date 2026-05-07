@@ -351,7 +351,9 @@ def computeIndexByName(img, index_name):
     elif index_name == "DGCI":
         if GPU_AVAILABLE:
             hs_img = bgr_to_hsv(img)
-            return computeIndexGPU(hs_img, computeDGCI_GPU)
+            # Now need to build an "image" with the relevant channels for DGCI
+            dgci_img = constructDGCIImage(img, hs_img)
+            return computeIndexGPU(dgci_img, computeDGCI_GPU)
         else:
             return computeIndex(img, INDEX_FUNCTIONS[index_name])
     else:
@@ -426,10 +428,8 @@ def summaryValues(img):
 # =========================
 # RGB to HSV using OpenCV
 # =========================
-
 # This does not currently allow for GPU usage, preventing its use in
-# calculating DGCI on a GPU. The OpenCV call reports: "Bad number of
-# channels"
+# calculating DGCI on a GPU. Only called when running on a CPU.
 def rgb_to_hsv(r, g, b):
     # OpenCV expects BGR and values in range [0,255]
     bgr_pixel = np.uint8([[[b, g, r]]])
@@ -446,21 +446,17 @@ def rgb_to_hsv(r, g, b):
 # =========================
 # RGB to HSV directly
 # =========================
-
+# Since we can't run the OpenCV code on a GPU, we need to calculate
+# directly using CuPy. The function name reflects the fact that since
+# we read images in using opencv, we are always dealing with BGR
+# rather than RGB.
+#
+# Expects a regular image format and returns a CuPy array a CuPy array
+# of shape (H, W, 3), float32.
+#             - H: Hue        (0–360)
+#             - S: Saturation (0–1)
+#             - V: Value      (0–1)
 def bgr_to_hsv(img):
-    """
-    Convert a BGR image to an HSV image using CuPy.
-
-    Args:
-        image: BGR image as a CuPy array of shape (H, W, 3).
-               Accepts uint8 (0–255) or float32 (0–1).
-
-    Returns:
-        hsv: HSV image as a CuPy array of shape (H, W, 3), float32.
-             - H: Hue        (0–360)
-             - S: Saturation (0–1)
-             - V: Value      (0–1)
-    """
     image = cp.asarray(img)
     image = image.astype(cp.float32)
 
@@ -505,3 +501,20 @@ def bgr_to_hsv(img):
 
     return hsv
 
+# DCGI expects an "image" which is made up of a mix of RGB and HSV,
+# namely (b, h, s).
+#
+# img is a regular RGB format, hs_img is a CuPY array (from
+# bgr_to_hsv)
+def constructDGCIImage(img, hs_img):
+    # Create a CuPy version of the BGR image
+    cp_img = cp.asarray(img)
+    cp_img = cp_img.astype(cp.float32)
+    # Extract relevant channels
+    b = cp_img[:, :, 0]
+    h = hs_img[:, :, 0]
+    s = hs_img[:, :, 1]
+
+    bhs = cp.stack([b, h, s], axis=-1)
+
+    return bhs
