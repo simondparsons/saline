@@ -455,9 +455,9 @@ def bgr_to_hsv(img):
     image = cp.asarray(img)
     image = image.astype(cp.float32)
 
-    # Normalise uint8 input to 0–1
+    # Start by normalizing the B, G, R values to 0–1
     #if image.max() > 1.0:
-    #    image = image / 255.0
+    image = image / 255.0
 
     # Unpack BGR channels
     b = image[:, :, 0]
@@ -469,25 +469,25 @@ def bgr_to_hsv(img):
     delta = cmax - cmin
 
     # --- Value ---
-    v = cmax
+    v = cmax * 100
 
     # --- Saturation ---
-    s = cp.where(cmax != 0, delta / cmax, cp.zeros_like(cmax))
+    s = cp.where(cmax != 0, (delta / cmax) * 100, cp.zeros_like(cmax))
 
     # --- Hue ---
     h = cp.zeros_like(cmax)
 
     # Hue when cmax == r
-    mask_r = (cmax == r) & (delta != 0)
-    h = cp.where(mask_r, (g - b) / delta % 6, h)
+    mask_r = (cmax == r) #& (delta != 0)
+    h = cp.where(mask_r, ((g - b) / (delta + EPS)) % 6, h)
 
     # Hue when cmax == g
-    mask_g = (cmax == g) & (delta != 0)
-    h = cp.where(mask_g, (b - r) / delta + 2, h)
+    mask_g = (cmax == g) #& (delta != 0)
+    h = cp.where(mask_g, ((b - r) / (delta + EPS)) + 2, h)
 
     # Hue when cmax == b
-    mask_b = (cmax == b) & (delta != 0)
-    h = cp.where(mask_b, (r - g) / delta + 4, h)
+    mask_b = (cmax == b) #& (delta != 0)
+    h = cp.where(mask_b, ((r - g) / (delta + EPS)) + 4, h)
 
     h = h * 60  # Convert to degrees
 
