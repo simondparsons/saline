@@ -84,29 +84,27 @@ def computeRGBVI(b, g, r):
 # Dark Green Colour Index (DGCI)
 # =========================
 #
-# Because of the call to rgb_to_hsv(), this is the one function that
-# can't be run on a GPU, an it runs massively slower on a GPU as a
-# result, ~30 seconds compared to under a second per image.
+#
+# DGCI is defined in Rossi et al. in terms of HSV. We don't need
+# the v value
 #
 # In order to calculate this index on a GPU, we have two versions.
+
+# Because of the call to rgb_to_hsv(), this version can't be run on a
+# GPU, and it means that computingthis index is much slower than the
+# other on a GPU-equipped machine: ~30 seconds compared to under a
+# second per image.
 def computeDGCI(b, g, r):
-    # DGCI is defined in Rossi et al. in terms of HSV. We don't need
-    # the v value
     h, s, _ = rgb_to_hsv(r, g, b)
     
-    #h = np.float64(h) 
-    #s = np.float64(s)
     return (((h - 60)/60) + (1 - s) + (1 - b)) / 3
 
-# This version accepts just the three parameters it needs and expects
-# the RGB to HSV conversion to be done elsewhere.
+# So, we have another version specifically for running on a GPU. This
+# version accepts just the three parameters it needs and expects the
+# RGB to HSV conversion to be done elsewhere. (Using the mixed set of
+# parameters is a bit of hack to keep the dispatcher code the same.
 def computeDGCI_GPU(b, h, s):
-    # DGCI is defined in Rossi et al. in terms of HSV. We don't need
-    # the v value
-    # h, s, _ = rgb_to_hsv(r, g, b)
-    
-    #h = np.float64(h) 
-    #s = np.float64(s)
+
     return (((h - 60)/60) + (1 - s) + (1 - b)) / 3
 
 # =========================
@@ -234,13 +232,10 @@ def normalizeImage(img):
 # GPU version
 #
 # The wrinkle with this is the need to explicitly convert to numpy
-# arrays where we need to use those in indexFunc and downstream. This
-# currently prevents us using the GPU to computeDGCI
+# arrays where we need to use those in indexFunc and downstream. 
 def computeIndexGPU(img, indexFunc):
     if not GPU_AVAILABLE:
         return computeIndex(img, indexFunc)
-    #elif indexFunc == "DGCI":
-    #    return computeIndex(img, indexFunc)
     else:
         # Use CuPy to get the benefit of GPU
         img_gpu = cp.asarray(img)
@@ -275,7 +270,8 @@ def computeIndexOld(img, indexFunc):
     imgUint8 = imgScaled.astype(np.uint8)
     return imgUint8
 
-# Using numpy vectorization 
+# Using numpy vectorization. What we do when we don't have a GPU
+# available.
 def computeIndex(img, indexFunc):
     # Convert to float64 so that we don't need to do it in indexFunc
     b = img[:,:,0].astype(np.float64) # get blue channel
@@ -340,15 +336,14 @@ def computeIndexByName(img, index_name):
     """
     # Given the nature of the computation, a GPU should speed things
     # up a lot, so we include code to use a GPU if one is
-    # available. However, right now I can't get DGCI (which needs a
-    # conversion to HSV) to work with the GPU, so we handle that
-    # separately.
+    # available. 
     if index_name not in INDEX_FUNCTIONS:
         raise ValueError(f"Unknown index '{index_name}'. "
                          f"Available indices: {list(INDEX_FUNCTIONS.keys())}")
-    # This is an ugly mix of what is done here for other indexes and
-    # what is done in computeIndexGPU. But the best I can manage for now.
     elif index_name == "DGCI":
+    # For DGCI we need a mix of RGB and HSV values, so we compute the
+    # HSV values first, in a GPU-compatible way, and then dispatch in
+    # the normal way, just sending the necessary parameters.
         if GPU_AVAILABLE:
             hs_img = bgr_to_hsv(img)
             # Now need to build an "image" with the relevant channels for DGCI
@@ -448,7 +443,7 @@ def rgb_to_hsv(r, g, b):
 # =========================
 # Since we can't run the OpenCV code on a GPU, we need to calculate
 # directly using CuPy. The function name reflects the fact that since
-# we read images in using opencv, we are always dealing with BGR
+# we read images in using OpenCV, we are always dealing with BGR
 # rather than RGB.
 #
 # Expects a regular image format and returns a CuPy array a CuPy array
@@ -461,8 +456,8 @@ def bgr_to_hsv(img):
     image = image.astype(cp.float32)
 
     # Normalise uint8 input to 0–1
-    if image.max() > 1.0:
-        image = image / 255.0
+    #if image.max() > 1.0:
+    #    image = image / 255.0
 
     # Unpack BGR channels
     b = image[:, :, 0]
