@@ -489,8 +489,10 @@ def bgr_to_hsv(img):
     mask_b = (cmax == b) #& (delta != 0)
     h = cp.where(mask_b, ((r - g) / (delta + EPS)) + 4, h)
 
-    h = h * 60  # Convert to degrees
-
+    h = h * 60 
+    if h < 0:
+        h = h + 360
+        
     # Stack into (H, W, 3) HSV image
     hsv = cp.stack([h, s, v], axis=-1)
 
