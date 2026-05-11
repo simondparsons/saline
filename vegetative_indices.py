@@ -434,8 +434,14 @@ def rgb_to_hsv(r, g, b):
     # the index function.
     h = np.float64(h) 
     s = np.float64(s)
-    v = np.float64(s)
-
+    v = np.float64(v)
+    # Finally convert back to proper HSV values (since we assume these
+    # are what are used in DGCI) rather than the odd values used by
+    # OpenCV (see https://docs.opencv.org/3.4/d8/d01/
+    #                         group__imgproc__color__conversions.html)
+    #h = np.float64(h * 2) 
+    #s = np.float64(s )
+    #v = np.float64(s)
     return h, s, v
 
 # =========================
@@ -449,8 +455,9 @@ def rgb_to_hsv(r, g, b):
 # Expects a regular image format and returns a CuPy array a CuPy array
 # of shape (H, W, 3), float32.
 #             - H: Hue        (0–360)
-#             - S: Saturation (0–1)
-#             - V: Value      (0–1)
+#             - S: Saturation (0–100)
+#             - V: Value      (0–100)
+
 def bgr_to_hsv(img):
     image = cp.asarray(img)
     image = image.astype(cp.float32)
@@ -472,9 +479,9 @@ def bgr_to_hsv(img):
     v = cmax * 100
 
     # --- Saturation ---
-    s = cp.zeros_like(cmax)
+    #s = cp.zeros_like(cmax)
 
-    s = cp.where(cmax != 0, (delta / cmax) * 100, s)
+    s = cp.where(cmax != 0, (delta / cmax) * 100, cp.zeros_like(cmax))
 
     # --- Hue ---
     h = cp.zeros_like(cmax)
