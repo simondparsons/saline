@@ -472,20 +472,22 @@ def bgr_to_hsv(img):
     v = cmax * 100
 
     # --- Saturation ---
-    s = cp.where(cmax != 0, (delta / cmax) * 100, cp.zeros_like(cmax))
+    s = cp.zeros_like(cmax)
+
+    s = cp.where(cmax != 0, (delta / cmax) * 100, s)
 
     # --- Hue ---
     h = cp.zeros_like(cmax)
 
-    # Hue when cmax == r
+    # Hue when cmax == r, here h is zero
     mask_r = (cmax == r) #& (delta != 0)
     h = cp.where(mask_r, ((g - b) / (delta + EPS)) % 6, h)
 
-    # Hue when cmax == g
+    # Hue when cmax == g, here h is set by the previous cp.where
     mask_g = (cmax == g) #& (delta != 0)
     h = cp.where(mask_g, ((b - r) / (delta + EPS)) + 2, h)
 
-    # Hue when cmax == b
+    # Hue when cmax == b, here h is set by the previous cp.wheres
     mask_b = (cmax == b) #& (delta != 0)
     h = cp.where(mask_b, ((r - g) / (delta + EPS)) + 4, h)
 
