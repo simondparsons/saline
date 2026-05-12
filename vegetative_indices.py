@@ -439,9 +439,10 @@ def rgb_to_hsv(r, g, b):
     # are what are used in DGCI) rather than the odd values used by
     # OpenCV (see https://docs.opencv.org/3.4/d8/d01/
     #                         group__imgproc__color__conversions.html)
-    #h = np.float64(h * 2) 
-    #s = np.float64(s )
-    #v = np.float64(s)
+    # h is doubled, and s and v scaled to be between 0 and 100
+    h = np.float64(h * 2) 
+    s = np.float64(s / 2.55)
+    v = np.float64(v / 2.55)
     return h, s, v
 
 # =========================
@@ -457,7 +458,9 @@ def rgb_to_hsv(r, g, b):
 #             - H: Hue        (0–360)
 #             - S: Saturation (0–100)
 #             - V: Value      (0–100)
-
+# since these are the standard HSV values rather than the ones
+# returned by OpenCV where H is in (0-179), so that it fits in 0-255,
+# and S and V are both in (0-255).
 def bgr_to_hsv(img):
     image = cp.asarray(img)
     image = image.astype(cp.float32)
